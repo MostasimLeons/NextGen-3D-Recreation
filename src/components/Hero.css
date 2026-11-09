@@ -1,0 +1,134 @@
+.hero {
+  position: relative;
+  height: 100vh;
+  height: 100svh;
+  min-height: 560px;
+  overflow: hidden;
+  background: var(--c-bg-warm);
+  isolation: isolate;
+}
+
+/* WebGL canvas ------------------------------------------------------ */
+.hero-canvas {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  opacity: 0;
+  transition: opacity 1.4s var(--ease-out);
+}
+.hero-canvas.is-ready {
+  opacity: 1;
+}
+.hero-canvas canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* Warm vignette + legibility shading over the scene */
+.hero__shade {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    radial-gradient(120% 90% at 55% 45%, transparent 45%, rgba(20, 9, 3, 0.42) 100%),
+    linear-gradient(180deg, rgba(20, 9, 3, 0.22) 0%, transparent 20%),
+    linear-gradient(0deg, rgba(20, 9, 3, 0.25) 0%, transparent 18%);
+}
+
+.hero > :not(.hero-canvas):not(.hero__shade) {
+  z-index: 2;
+}
+
+/* Brand block ------------------------------------------------------- */
+.hero__brand {
+  position: absolute;
+  top: clamp(28px, 2.7vw, 48px);
+  left: var(--gutter);
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-end;
+  pointer-events: none;
+}
+
+.hero__tagline {
+  font-size: clamp(11px, 1.25vw, 22px);
+  line-height: 1;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.005em;
+  margin-right: 0.15em;
+}
+
+.hero__wordmark {
+  font-family: var(--f-display);
+  font-weight: 600;
+  font-size: 9.6vw;
+  white-space: nowrap;
+  line-height: 0.78;
+  letter-spacing: -0.035em;
+  margin-top: 0.12em;
+  margin-left: -0.05em;
+  color: var(--c-cream);
+}
+
+/* Right-hand lead paragraph ------------------------------------------ */
+.hero__lead {
+  position: absolute;
+  left: var(--col-right);
+  top: 44vh;
+  width: min(31vw, 520px);
+  font-size: clamp(16px, 1.98vw, 34px);
+  line-height: 1.26;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  text-wrap: pretty;
+  text-shadow: 0 1px 18px rgba(20, 9, 3, 0.35);
+}
+
+/* Tablet ------------------------------------------------------------- */
+@media (max-width: 1024px) {
+  :root {
+    --col-right: 52vw;
+  }
+  .hero__wordmark {
+    font-size: 11.5vw;
+  }
+  .hero__lead {
+    left: auto;
+    right: var(--gutter);
+    top: calc(clamp(28px, 2.7vw, 48px) + 1.25vw + 11.5vw * 0.9 + 28px);
+    width: 50vw;
+    font-size: clamp(17px, 2.5vw, 24px);
+  }
+}
+
+/* Mobile ------------------------------------------------------------- */
+@media (max-width: 640px) {
+  .hero {
+    min-height: 600px;
+  }
+  .hero__brand {
+    top: 52px;
+    left: var(--gutter);
+    right: var(--gutter);
+  }
+  .hero__tagline {
+    font-size: 3.7vw;
+  }
+  .hero__wordmark {
+    width: 100%;
+    font-size: 16.4vw;
+    margin-top: 0.08em;
+  }
+  .hero__lead {
+    left: auto;
+    right: var(--gutter);
+    top: calc(52px + 3.7vw + 16.4vw * 0.9 + 18px);
+    bottom: auto;
+    width: 64vw;
+    font-size: clamp(14px, 4.1vw, 18px);
+    line-height: 1.3;
+  }
+}

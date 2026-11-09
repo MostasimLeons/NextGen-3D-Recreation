@@ -1,0 +1,76 @@
+.info-card {
+  position: absolute;
+  left: calc(var(--gutter) * 1.25);
+  bottom: var(--edge-bottom);
+  width: clamp(200px, 18.4vw, 320px);
+  height: clamp(250px, 34.5vh, 380px);
+  padding: clamp(14px, 1.25vw, 22px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--c-glass);
+  border: 1px solid var(--c-glass-border);
+  -webkit-backdrop-filter: blur(14px) saturate(1.15);
+  backdrop-filter: blur(14px) saturate(1.15);
+  box-shadow: 0 20px 60px -30px rgba(10, 4, 0, 0.6);
+}
+
+/* Soft warm light pooling in the lower half of the card */
+.info-card__glow {
+  position: absolute;
+  left: -20%;
+  bottom: 8%;
+  width: 110%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 220, 185, 0.32), transparent 62%);
+  pointer-events: none;
+}
+
+.info-card__title {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  font-size: clamp(15px, 1.67vw, 28px);
+  line-height: 1.09;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: -0.005em;
+}
+
+.info-card__rule {
+  position: relative;
+  margin-top: auto;
+  height: 1px;
+  background-image: linear-gradient(90deg, var(--c-cream-dim) 50%, transparent 50%);
+  background-size: 4px 1px;
+}
+
+.info-card__body {
+  position: relative;
+  margin-top: clamp(10px, 1.1vw, 18px);
+  margin-left: auto;
+  max-width: 13em;
+  font-size: clamp(12px, 1.25vw, 20px);
+  line-height: 1.33;
+  font-weight: 400;
+  text-align: right;
+}
+
+@media (max-width: 640px) {
+  .info-card {
+    left: var(--gutter);
+    width: 47vw;
+    height: auto;
+    min-height: 0;
+    aspect-ratio: 0.82;
+  }
+  .info-card__title {
+    font-size: clamp(13px, 4vw, 16px);
+  }
+  .info-card__body {
+    text-align: left;
+    margin-left: 0;
+    font-size: clamp(11px, 3.4vw, 14px);
+  }
+}

@@ -1,0 +1,40 @@
+.scroll-hint {
+  position: absolute;
+  left: var(--col-right);
+  bottom: calc(var(--edge-bottom) + 4px);
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: clamp(10px, 0.82vw, 13px);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  line-height: 1;
+}
+
+.scroll-hint__icon {
+  display: inline-flex;
+  animation: scroll-bob 2.4s var(--ease-out) infinite;
+}
+@keyframes scroll-bob {
+  50% {
+    transform: translateY(3px);
+  }
+}
+
+@media (max-width: 1024px) {
+  .scroll-hint {
+    left: 50%;
+    transform: translateX(-50%);
+  }
+}
+
+@media (max-width: 640px) {
+  .scroll-hint {
+    left: auto;
+    right: var(--gutter);
+    transform: none;
+    flex-direction: row-reverse;
+    font-size: 10px;
+  }
+}

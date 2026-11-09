@@ -1,0 +1,24 @@
+:root {
+  /* Palette */
+  --c-bg: #1a0f08;
+  --c-bg-warm: #24140a;
+  --c-cream: #ffedd7;
+  --c-cream-dim: rgba(255, 237, 215, 0.62);
+  --c-ink: #160c05;
+  --c-orange: #f0762a;
+  --c-orange-deep: #dc5000;
+  --c-glass: rgba(255, 237, 215, 0.13);
+  --c-glass-border: rgba(255, 237, 215, 0.14);
+
+  /* Type */
+  --f-display: 'Outfit', 'Hanken Grotesk', system-ui, sans-serif;
+  --f-text: 'Hanken Grotesk', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --f-mono: 'DM Mono', ui-monospace, monospace;
+
+  /* Layout — tuned against a 1440 × 900 reference frame */
+  --gutter: clamp(16px, 2.5vw, 48px);
+  --edge-bottom: clamp(16px, 1.75vw, 32px);
+  --col-right: 64.4vw; /* left edge of the right-hand text column */
+
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+}

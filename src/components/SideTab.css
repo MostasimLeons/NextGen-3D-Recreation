@@ -1,0 +1,46 @@
+.side-tab {
+  position: absolute;
+  top: 0;
+  right: var(--gutter);
+  width: 3.4vw;
+  min-width: 40px;
+  max-width: 56px;
+  height: 22vh;
+  min-height: 170px;
+  padding-top: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  background: var(--c-cream);
+  color: var(--c-ink);
+  border-radius: 0 0 4px 4px;
+  transform: translateX(var(--gutter));
+  transition: background 0.3s;
+}
+.side-tab:hover {
+  background: #fff6ea;
+}
+
+.side-tab__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--c-ink);
+  flex: none;
+}
+
+.side-tab__label {
+  writing-mode: vertical-rl;
+  font-size: clamp(10px, 0.82vw, 13px);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+@media (max-width: 1024px) {
+  .side-tab {
+    display: none;
+  }
+}
