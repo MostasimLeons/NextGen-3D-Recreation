@@ -94,6 +94,7 @@ export const HERO_STATE = {
   formation: 0, // outro: gamepad + headset flank the mug
   // Driven by UI interaction, never by the scroll timeline (prefix "user").
   userFlip: 0,
+  userPortal: 0, // page transition: 0 = idle, 1 = camera dived into the scene
 };
 
 /** Keys the scroll timeline must not touch (owned by UI interactions). */

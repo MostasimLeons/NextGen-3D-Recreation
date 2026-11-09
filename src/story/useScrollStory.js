@@ -2,58 +2,14 @@ import { useLayoutEffect } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { STORY } from './storyConfig.js';
+import { pick, resolveSteps, applyPreset } from './sceneDirector.js';
 import { techProgress, TECH_CHAPTER_EVENT } from './techChapter.js';
 import { content } from '../content.js';
-import { HERO_STATE, isUserKey } from '../three/sceneConfig.js';
 
 gsap.registerPlugin(ScrollTrigger);
 // Don't re-measure when only the mobile URL bar shows/hides.
 ScrollTrigger.config({ ignoreMobileResize: true });
 if (import.meta.env.DEV) window.__ScrollTrigger = ScrollTrigger; // debugging aid (dev only)
-
-const STATE_KEYS = Object.keys(HERO_STATE).filter((k) => !isUserKey(k));
-const pick = (obj) => Object.fromEntries(STATE_KEYS.map((k) => [k, obj[k]]));
-
-/** Story `bg` ({ glow, x %, y %, tint }) → backdrop shader state fields. */
-const bgToState = (bg, prev) => ({
-  glow: bg.glow,
-  gx: bg.x / 100,
-  gy: bg.y / 100,
-  tint: bg.tint ?? prev.tint ?? 0,
-});
-
-/**
- * Resolve every step into a full state (each step inherits the previous one)
- * plus its scroll window inside its section, in viewport-height units.
- */
-function resolveSteps() {
-  const out = [];
-  let prev = { ...HERO_STATE, ...bgToState(STORY[0].steps[0].bg, HERO_STATE) };
-  for (const section of STORY) {
-    const n = section.steps.length;
-    section.steps.forEach((step, j) => {
-      const next = { ...prev, ...step };
-      if (step.bg) Object.assign(next, bgToState(step.bg, prev));
-      let from;
-      let to;
-      if (j === 0) {
-        // Transition while the section scrolls in (top at 75% → 15% above top).
-        from = -0.75;
-        to = 0.15;
-      } else {
-        // Spread steps over the pinned range only (the stage unpins at length − 1).
-        const pinned = section.length - 1;
-        const c = (j * pinned) / n;
-        const half = Math.min(0.45, pinned / n / 2 - 0.03, section.length - 0.75 - c);
-        from = c - half;
-        to = c + half;
-      }
-      out.push({ section: section.id, index: j, from, to, prev, next });
-      prev = next;
-    });
-  }
-  return out;
-}
 
 /**
  * Wires the whole scroll story:
@@ -63,15 +19,22 @@ function resolveSteps() {
  *  - Background (GLSL backdrop) + atmosphere are plain state fields too.
  *  - Typography reveals, counters, header logo.
  *  - Reduced motion: no scrubbed motion; scene/text snap per step.
+ *
+ * `story` is the page's config (home: storyConfig.js STORY). Its first step
+ * is the page preset (sceneDirector.js), applied as soon as the page opens.
+ * Home-only effects (tech chapters, giant word, counter…) simply find no
+ * element on other pages and are skipped.
  */
-export function useScrollStory(rig, rootRef) {
+export function useScrollStory(rig, rootRef, story = STORY) {
   useLayoutEffect(() => {
     const root = rootRef.current;
     if (!rig || !root) return undefined;
 
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     rig.smoothing = reduced ? 0 : 1;
-    const steps = resolveSteps();
+    const steps = resolveSteps(story);
+    const first = story[0].id;
+    applyPreset(rig, story);
     const vh = () => window.innerHeight;
     const sectionEl = (id) => root.querySelector(`[data-story="${id}"]`);
     const pos = (offsetVh) => () => `top+=${Math.round(offsetVh * vh())} top`;
@@ -81,7 +44,7 @@ export function useScrollStory(rig, rootRef) {
       if (reduced) {
         // No scrubbed motion: cut to each step's state at its midpoint.
         for (const s of steps) {
-          if (s.section === 'intro' || !sectionEl(s.section)) continue;
+          if (s.base || !sectionEl(s.section)) continue;
           ScrollTrigger.create({
             trigger: sectionEl(s.section),
             start: pos((s.from + s.to) / 2),
@@ -108,7 +71,7 @@ export function useScrollStory(rig, rootRef) {
         scrollTrigger: { trigger: root, start: 'top top', end: () => `+=${total}`, scrub: true },
       });
       for (const s of steps) {
-        if (s.section === 'intro') continue;
+        if (s.base) continue;
         const el = sectionEl(s.section);
         if (!el) continue;
         const start = Math.max(0, el.offsetTop + s.from * h);
@@ -144,7 +107,7 @@ export function useScrollStory(rig, rootRef) {
       const hudIndex = document.querySelector('[data-hud-index]');
       const hudLabel = document.querySelector('[data-hud-label]');
       const hudBar = document.querySelector('[data-hud-bar]');
-      STORY.forEach((section, i) => {
+      story.forEach((section, i) => {
         const el = sectionEl(section.id);
         if (!el) return;
         ScrollTrigger.create({
@@ -153,7 +116,7 @@ export function useScrollStory(rig, rootRef) {
           end: 'bottom 50%',
           onToggle: (self) => {
             if (!self.isActive) return;
-            if (hudIndex) hudIndex.textContent = `${String(i + 1).padStart(2, '0')} / ${String(STORY.length).padStart(2, '0')}`;
+            if (hudIndex) hudIndex.textContent = `${String(i + 1).padStart(2, '0')} / ${String(story.length).padStart(2, '0')}`;
             if (hudLabel) hudLabel.textContent = section.label ?? section.id;
           },
         });
@@ -169,7 +132,7 @@ export function useScrollStory(rig, rootRef) {
 
       /* Header: small wordmark appears once the hero is left behind ------ */
       ScrollTrigger.create({
-        trigger: sectionEl('intro'),
+        trigger: sectionEl(first),
         start: 'bottom 70%',
         toggleClass: { targets: document.documentElement, className: 'is-past-hero' },
       });
@@ -190,7 +153,7 @@ export function useScrollStory(rig, rootRef) {
       const processEl = sectionEl('process');
       const techRoot = processEl?.querySelector('.tech');
       if (processEl && techRoot) {
-        const len = STORY.find((s) => s.id === 'process').length;
+        const len = story.find((s) => s.id === 'process').length;
         const n = content.story.process.chapters.length;
         const apply = (progress) => {
           const p = Math.min(progress * n, n - 0.0001);
@@ -230,8 +193,8 @@ export function useScrollStory(rig, rootRef) {
       });
 
       /* Typography ------------------------------------------------------- */
-      for (const section of STORY) {
-        if (section.id === 'intro') continue;
+      for (const section of story) {
+        if (section.id === first) continue; // the opening section has its own entrance
         const el = sectionEl(section.id);
         if (!el) continue;
         const n = section.steps.length;
@@ -243,7 +206,7 @@ export function useScrollStory(rig, rootRef) {
           const inStart = j === 0 ? -0.55 : j * stepLen - 0.35;
           const inEnd = j === 0 ? 0.1 : j * stepLen + 0.05;
           const isLast = j === n - 1;
-          const isFinalSection = section === STORY[STORY.length - 1];
+          const isFinalSection = section === story[story.length - 1];
           // Last step leaves as the next section starts its 3D transition.
           const outStart = isLast ? section.length - 0.95 : (j + 1) * stepLen - 0.45;
           const outEnd = isLast ? section.length - 0.6 : (j + 1) * stepLen - 0.1;
@@ -301,8 +264,8 @@ export function useScrollStory(rig, rootRef) {
 
       /* Blueprint circle draws on around the handle ------------------------ */
       const blueprint = root.querySelectorAll('[data-draw]');
-      if (blueprint.length) {
-        const f = STORY.find((s) => s.id === 'features');
+      const f = story.find((s) => s.id === 'features');
+      if (blueprint.length && f) {
         const c = (2 * (f.length - 1)) / 3;
         gsap.fromTo(
           blueprint,
@@ -332,5 +295,5 @@ export function useScrollStory(rig, rootRef) {
       ctx.revert();
       document.documentElement.classList.remove('is-past-hero');
     };
-  }, [rig, rootRef]);
+  }, [rig, rootRef, story]);
 }

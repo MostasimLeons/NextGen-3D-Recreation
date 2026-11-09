@@ -1,5 +1,8 @@
 import StorySection from './StorySection.jsx';
 import { content } from '../../content.js';
+import { ROUTE_TABLE } from '../../pages/routeTable.js';
+
+const WORLDS = ROUTE_TABLE.filter((r) => r.id !== 'home');
 
 const copy = content.story.outro;
 
@@ -19,6 +22,14 @@ export default function OutroSection() {
         <p className="outro__body" data-reveal>
           {copy.body}
         </p>
+        <nav className="outro__worlds" aria-label="Explore the worlds" data-reveal>
+          {WORLDS.map((w, i) => (
+            <a key={w.id} href={w.path}>
+              <span>{String(i + 1).padStart(2, '0')}</span>
+              {w.label}
+            </a>
+          ))}
+        </nav>
         <div className="outro__ctas" data-reveal>
           <a className="outro__cta" href={copy.cta.href}>
             <span className="outro__cta-dot" aria-hidden="true" />
