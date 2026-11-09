@@ -46,6 +46,7 @@ export const STORY = [
         hero: 0,
         desk: 0,
         ...MUG_ONLY,
+        world: 1, steam: 1, orbit: 0, formation: 0,
         fx: 0, pfx: 0, fy: 6, fz: 0, dist: 36, pitch: 16, yaw: 0, pfy: 2.6, pdist: 1,
         mx: 0, my: 2, mz: 0, rx: 0.55, ry: 2.65, rz: -0.3,
         key: 2.4, fill: 1.5, hemi: 0.5, rim: 95, heat: 0, env: 0.6,
@@ -61,7 +62,7 @@ export const STORY = [
     steps: [
       {
         fx: 0, fy: 8.6, dist: 33, pitch: 62, pfy: 2.5,
-        rx: 0, ry: 3.6, rz: 0,
+        rx: 0, ry: 3.6, rz: 0, steam: 1.3,
         key: 3, fill: 0.8, hemi: 0.75, rim: 70, env: 0.5,
         bg: { glow: 0.38, x: 50, y: 64, tint: 0.12 },
         embers: 0.9, smoke: 0.8, trails: 0.2, voxels: 0.4,
@@ -75,7 +76,7 @@ export const STORY = [
     steps: [
       {
         fx: 0, fy: 5.9, dist: 34, pitch: 6, pfy: 0,
-        rx: 0, ry: 3.6 + TAU, rz: 0.08,
+        rx: 0, ry: 3.6 + TAU, rz: 0.08, steam: 0.7,
         key: 3, hemi: 0.7, rim: 85,
         bg: { glow: 0.2, x: 50, y: 55, tint: 0.2 },
         embers: 0.4, smoke: 0.4, trails: 1, voxels: 0.8,
@@ -89,7 +90,7 @@ export const STORY = [
     steps: [
       {
         // 01 Game development — the gamepad takes the stage, warm glow.
-        mugS: 0, padS: 1, vrS: 0, arx: -0.3, ary: -0.45,
+        mugS: 0, padS: 1, vrS: 0, arx: -0.3, ary: -0.45, steam: 0,
         fx: -6.5, fy: 5.9, dist: 30, pitch: 10, pfy: 3.4,
         rx: 0, ry: 0.5 + 2 * TAU, rz: 0,
         key: 2.2, fill: 1.1, hemi: 0.5, rim: 60, heat: 0.7, env: 0.6,
@@ -123,7 +124,7 @@ export const STORY = [
       {
         // Mug on the right; the flip toy turns it upside down (userFlip).
         fx: -6, pfx: 0, fy: 5.9, fz: 0, dist: 32, pitch: 18, pfy: 3.2, pdist: 1,
-        rx: 0.05, ry: 0.5 + 3 * TAU, rz: 0,
+        rx: 0.05, ry: 0.5 + 3 * TAU, rz: 0, steam: 0.8,
         key: 3, fill: 1.2, hemi: 0.7, rim: 80,
         bg: { glow: 0.3, x: 68, y: 56, tint: 0.1 },
         embers: 0.4, smoke: 0.3, trails: 0.5, voxels: 0.5,
@@ -138,7 +139,7 @@ export const STORY = [
       {
         // Macro over the rim: glaze + coffee below, dark space for the title.
         fx: -0.4, pfx: -0.4, fy: 10.4, fz: 3.0, dist: 8, pitch: 14, pfy: -0.6, pdist: 0.75,
-        ry: 0.5 + 3 * TAU, rz: 0, rx: 0,
+        ry: 0.5 + 3 * TAU, rz: 0, rx: 0, steam: 0.45,
         key: 2.6, fill: 0.8, hemi: 0.7, rim: 130,
         bg: { glow: 0.1, x: 50, y: 50, tint: 0 },
         embers: 0, smoke: 0, trails: 0, voxels: 0,
@@ -152,8 +153,8 @@ export const STORY = [
     steps: [
       {
         // Mug floats high on the right, tool grid sits low across the page.
-        fx: -7, pfx: 0, fy: 4.2, fz: 0, dist: 40, pitch: 22, pfy: 6.5, pdist: 1,
-        rx: 0.2, ry: 1.5 + 3 * TAU, rz: -0.15,
+        fx: -2.5, pfx: 0, fy: 5.4, fz: 0, dist: 46, pitch: 18, pfy: 1.5, pdist: 1,
+        rx: 0.12, ry: 1.5 + 3 * TAU, rz: -0.1, orbit: 1, steam: 0.8,
         key: 3, fill: 1, hemi: 0.7, rim: 80,
         bg: { glow: 0.22, x: 70, y: 35, tint: 0.15 },
         embers: 0.5, smoke: 0.5, trails: 0.7, voxels: 0.9,
@@ -168,7 +169,7 @@ export const STORY = [
     length: 7.6,
     steps: [
       {
-        mugS: 0, padS: 0, vrS: 0, arx: 0.15, ary: -0.9,
+        mugS: 0, padS: 0, vrS: 0, arx: 0.15, ary: -0.9, orbit: 0, steam: 0,
         fx: 0, pfx: 0, fy: 7.8, dist: 34, pitch: 8, pfy: 2,
         key: 2.4, fill: 0.7, hemi: 0.5, rim: 70, heat: 0,
         bg: { glow: 0.42, x: 62, y: 46, tint: 0.45 },
@@ -203,8 +204,8 @@ export const STORY = [
     length: 1.6,
     steps: [
       {
-        ...MUG_ONLY,
-        fx: 0, fy: 8.6, dist: 40, pitch: 14, pfy: 2,
+        mugS: 1, padS: 1, vrS: 1, formation: 1, arx: 0.15, ary: 0.5, steam: 1,
+        fx: 0, fy: 8.2, dist: 42, pitch: 12, pfy: 2,
         rx: 0.1, ry: 0.6 + 5 * TAU, rz: 0, glaze: 0,
         key: 3, fill: 1, hemi: 0.75, rim: 70, heat: 0,
         bg: { glow: 0.32, x: 50, y: 70, tint: 0.35 },

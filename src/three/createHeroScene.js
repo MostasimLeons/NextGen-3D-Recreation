@@ -18,6 +18,9 @@ import { createLightTrails } from './effects/lightTrails.js';
 import { createVoxels } from './effects/voxels.js';
 import { createCoffeeSpill } from './effects/coffeeSpill.js';
 import { createCoffeePour } from './effects/coffeePour.js';
+import { createWorld } from './effects/world.js';
+import { createSteam } from './effects/steam.js';
+import { createOrbit } from './effects/orbit.js';
 
 const COASTER = { radius: 5, height: 0.62 };
 const { lerp, clamp, degToRad } = THREE.MathUtils;
@@ -229,6 +232,19 @@ export async function createHeroScene(container, { onReady } = {}) {
   });
   scene.add(spill.object);
   const coffee = createCoffeePour({ mug, spill, reducedMotion });
+
+  /* Immersive world + section actors ------------------------------------ */
+  const world = createWorld();
+  scene.add(world.object);
+  scene.fog = new THREE.FogExp2('#120604', 0); // density animated after the hero
+  const steam = createSteam({ count: lowPower ? 22 : 34 });
+  scene.add(steam.object);
+  const orbit = createOrbit({ center: STAGE });
+  scene.add(orbit.object);
+  const steamOrigin = new THREE.Vector3();
+  const FORMATION = { pad: new THREE.Vector3(-8.5, 7.4, -4), vr: new THREE.Vector3(8.5, 7.4, -4) };
+  const actorPos = new THREE.Vector3();
+  let travel = 0; // smoothed scroll progress (rig.scrollProgress, 0–1)
   const flipOffset = new THREE.Vector3();
   const flipEuler = new THREE.Euler();
   const glazeColors = GLAZES.map((c) => new THREE.Color(c));
@@ -264,6 +280,11 @@ export async function createHeroScene(container, { onReady } = {}) {
     const tz = target.z + params.focusZ;
     heroTarget.set(tx + px * 0.3, 0, tz + pz * 0.3);
     heroPos.set(tx + px, Math.cos(tilt) * dist, tz + Math.sin(tilt) * dist + pz);
+  }
+
+  /** 1 on landscape → ~0.55 on narrow phones: shrinks wide set pieces to fit. */
+  function narrowFit() {
+    return clamp(camera.aspect / 0.85, 0.55, 1);
   }
 
   function computeStoryCamera() {
@@ -354,15 +375,19 @@ export async function createHeroScene(container, { onReady } = {}) {
 
     // Gamepad / headset: scale in, gentle float + idle turn.
     const bob = Math.sin(t * 0.9) * 0.18 * idle;
+    const form = ease(clamp(view.formation, 0, 1));
     [
-      [pad, view.padS, 0.95],
-      [vr, view.vrS, 0.92],
-    ].forEach(([a, sRaw, size]) => {
+      [pad, view.padS, 0.95, FORMATION.pad],
+      [vr, view.vrS, 0.92, FORMATION.vr],
+    ].forEach(([a, sRaw, size, flank]) => {
       const s = ease(clamp(sRaw, 0, 1));
       a.visible = s > 0.01;
       if (!a.visible) return;
-      a.scale.setScalar(size * Math.max(s, 0.001));
-      a.position.set(STAGE.x, STAGE.y + bob, STAGE.z);
+      a.scale.setScalar(size * Math.max(s, 0.001) * (1 - form * 0.35));
+      actorPos.lerpVectors(STAGE, flank, form);
+      // Portrait: pull the flanking actors in so they stay on screen.
+      actorPos.x = STAGE.x + (actorPos.x - STAGE.x) * Math.max(narrowFit(), 0.78);
+      a.position.set(actorPos.x, actorPos.y + bob, actorPos.z);
       a.rotation.set(
         view.arx - pointer.sy * 0.08 * params.parallax,
         view.ary + Math.sin(t * 0.4) * 0.12 * idle + pointer.sx * 0.2 * params.parallax + (1 - s) * 1.2,
@@ -394,6 +419,23 @@ export async function createHeroScene(container, { onReady } = {}) {
     trails.update(ft, clamp(view.trails, 0, 1.5));
     voxels.update(ft, clamp(view.voxels, 0, 1.2));
 
+    // World travel + presence (fades in as the desk fades out).
+    const tTarget = clamp(rig?.scrollProgress ?? 0, 0, 1);
+    travel += (tTarget - travel) * (reducedMotion ? 1 : 1 - Math.exp(-dt * 4));
+    const presence = (1 - h) * clamp(view.world, 0, 1);
+    world.update(ft, { travel, presence, glow: clamp(view.glow * 1.6 + 0.25, 0, 1.2) });
+    scene.fog.density = 0.0075 * presence;
+
+    // Steam from the opening while the mug is upright, full and on stage.
+    const upright = 1 - clamp(view.userFlip * 4, 0, 1);
+    steamOrigin.set(0, 5.35, 0);
+    mug.localToWorld(steamOrigin);
+    steam.setOrigin(steamOrigin);
+    steam.update(ft, view.steam * (1 - h) * upright * coffee.level * ms);
+
+    // Capability orbit (toolkit).
+    orbit.update(ft, clamp(view.orbit, 0, 1) * (1 - h), narrowFit());
+
     post.render(dt);
 
     if (first) {
@@ -407,6 +449,8 @@ export async function createHeroScene(container, { onReady } = {}) {
   rig = {
     smoothing: 1,
     coffee, // { burst(strength), refill(), level } — for flip timelines
+    orbit, // { anchors: Vector3[4] } — toolkit labels pin to these
+    scrollProgress: 0, // written by useScrollStory; drives world travel
     scene,
     camera,
     renderer,

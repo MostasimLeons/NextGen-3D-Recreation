@@ -87,6 +87,11 @@ export const HERO_STATE = {
   smoke: 0,
   trails: 0,
   voxels: 0,
+  // Immersive world (after the hero): presence 0–1, plus section actors.
+  world: 0, // corridor floor / gates / monoliths / shards
+  steam: 0, // steam rising from the upright mug
+  orbit: 0, // capability orbit (toolkit)
+  formation: 0, // outro: gamepad + headset flank the mug
   // Driven by UI interaction, never by the scroll timeline (prefix "user").
   userFlip: 0,
 };

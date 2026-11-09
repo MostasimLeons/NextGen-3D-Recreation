@@ -150,49 +150,6 @@
   line-height: 0.86;
   letter-spacing: -0.045em;
 }
-.toolkit__grid {
-  left: var(--gutter);
-  right: var(--gutter);
-  bottom: clamp(32px, 7vh, 72px);
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-.toolkit__card {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  min-height: clamp(130px, 17vh, 190px);
-  padding: 16px;
-  background: var(--c-glass);
-  border: 1px solid var(--c-glass-border);
-  -webkit-backdrop-filter: blur(12px);
-  backdrop-filter: blur(12px);
-}
-.toolkit__index {
-  font-family: var(--f-mono);
-  font-size: 11px;
-  color: var(--c-orange-glow);
-}
-.toolkit__name {
-  font-size: clamp(15px, 1.35vw, 22px);
-  font-weight: 600;
-  text-transform: uppercase;
-  line-height: 1.05;
-}
-.toolkit__items {
-  margin-top: auto;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 12px;
-  font-family: var(--f-mono);
-  font-size: clamp(10px, 0.78vw, 12px);
-  text-transform: uppercase;
-  color: var(--c-cream-dim);
-}
 
 /* 9. Process (horizontal track) ------------------------------------- */
 .process__head {
@@ -242,9 +199,6 @@
   .interactive {
     width: 46vw;
   }
-  .toolkit__grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
 }
 
 /* Mobile --------------------------------------------------------------- */
@@ -276,15 +230,6 @@
   .toolkit__title {
     font-size: 15vw;
   }
-  .toolkit__grid {
-    bottom: 5vh;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 8px;
-  }
-  .toolkit__card {
-    min-height: 0;
-    padding: 12px;
-  }
 
   .process__head {
     top: 10vh;
@@ -298,5 +243,87 @@
   }
   .outro__ctas {
     flex-wrap: wrap;
+  }
+}
+
+/* Toolkit: labels pinned to the 3D capability orbit -------------------- */
+.orbit-labels {
+  inset: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  pointer-events: none;
+}
+.orbit-label {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  opacity: 0;
+  will-change: transform, opacity;
+  transition: filter 0.4s;
+}
+.orbit-label__dot {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  margin: -5px 0 0 -5px;
+  border-radius: 50%;
+  border: 1px solid var(--c-orange-glow);
+  box-shadow: 0 0 12px var(--c-orange-glow);
+}
+.orbit-label__card {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 8px 12px 9px;
+  margin-top: -12px;
+  border-left: 1px solid rgba(255, 122, 42, 0.6);
+  background: linear-gradient(90deg, rgba(var(--c-shade), 0.72), rgba(var(--c-shade), 0));
+  white-space: nowrap;
+}
+.orbit-label__index {
+  font-family: var(--f-mono);
+  font-size: 10px;
+  color: var(--c-orange-glow);
+}
+.orbit-label__name {
+  font-family: var(--f-display);
+  font-size: clamp(16px, 1.4vw, 24px);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--c-cream);
+}
+.orbit-label__items {
+  font-family: var(--f-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--c-cream-dim);
+}
+.orbit-label.is-left {
+  flex-direction: row-reverse;
+  translate: -100% 0;
+}
+.orbit-label.is-left .orbit-label__dot {
+  margin: -5px -5px 0 0;
+}
+.orbit-label.is-left .orbit-label__card {
+  align-items: flex-end;
+  border-left: 0;
+  border-right: 1px solid rgba(255, 122, 42, 0.6);
+  background: linear-gradient(270deg, rgba(var(--c-shade), 0.72), rgba(var(--c-shade), 0));
+}
+.orbit-label.is-far {
+  filter: blur(1px) brightness(0.7);
+}
+@media (max-width: 640px) {
+  .orbit-label__items {
+    display: none;
+  }
+  .orbit-label__name {
+    font-size: 14px;
   }
 }

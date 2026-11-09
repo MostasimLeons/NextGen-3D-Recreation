@@ -174,6 +174,15 @@ export function useScrollStory(rig, rootRef) {
         toggleClass: { targets: document.documentElement, className: 'is-past-hero' },
       });
 
+      /* Whole-page progress → world travel (continuous, not keyframed) --- */
+      ScrollTrigger.create({
+        trigger: root,
+        start: 'top top',
+        end: 'bottom bottom',
+        onUpdate: (self) => (rig.scrollProgress = self.progress),
+        onRefresh: (self) => (rig.scrollProgress = self.progress),
+      });
+
       /* "Runs on the edge of play": six technology chapters -------------- */
       // One trigger over the pinned range: writes in-chapter progress (camera
       // dolly + word fill) every update, and fires TECH_CHAPTER_EVENT only
@@ -203,6 +212,22 @@ export function useScrollStory(rig, rootRef) {
       }
 
       if (reduced) return; // text stays static & visible
+
+      /* Headline parallax: every section title drifts through its section
+         (yPercent composes with the reveal tweens' y — no conflict). */
+      root.querySelectorAll('.story-section h2:not([data-giant])').forEach((h2) => {
+        const section = h2.closest('.story-section');
+        gsap.fromTo(
+          h2,
+          { yPercent: 18, letterSpacing: '0.01em' },
+          {
+            yPercent: -18,
+            letterSpacing: '-0.035em',
+            ease: 'none',
+            scrollTrigger: { trigger: section, start: 'top bottom', end: 'bottom top', scrub: true },
+          },
+        );
+      });
 
       /* Typography ------------------------------------------------------- */
       for (const section of STORY) {
