@@ -188,30 +188,6 @@
   font-weight: 400;
   color: rgba(255, 237, 215, 0.82);
 }
-.feature__stat {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding-top: 14px;
-  border-top: 1px solid transparent;
-  border-image: repeating-linear-gradient(90deg, var(--c-cream-dim) 0 2px, transparent 2px 5px) 1;
-}
-.feature__stat-value {
-  font-family: var(--f-display);
-  font-size: clamp(28px, 2.6vw, 48px);
-  font-weight: 600;
-  letter-spacing: -0.03em;
-  line-height: 1;
-}
-.feature--0 .feature__stat-value {
-  color: var(--c-orange-glow);
-}
-.feature__stat-label {
-  font-family: var(--f-mono);
-  font-size: clamp(10px, 0.78vw, 12px);
-  text-transform: uppercase;
-  color: var(--c-cream-dim);
-}
 
 /* Blueprint circle around the handle close-up */
 .blueprint {
@@ -307,12 +283,12 @@
   font-weight: 600;
 }
 
-/* 6. Variants ----------------------------------------------------------- */
-.variants__eyebrow {
+/* 10. Projects ----------------------------------------------------------- */
+.projects__eyebrow {
   left: var(--gutter);
   top: 22vh;
 }
-.variants__list {
+.projects__list {
   left: var(--gutter);
   top: 50%;
   translate: 0 -50%;
@@ -328,34 +304,17 @@
   line-height: 1.02;
   letter-spacing: -0.035em;
 }
-.variants__item {
+.projects__item {
   display: flex;
   align-items: center;
   gap: 0.35em;
   color: rgba(255, 237, 215, 0.22);
   transition: color 0.5s var(--ease-out);
 }
-.variants__item.is-active {
+.projects__item.is-active {
   color: var(--c-cream);
 }
-.variants__item em {
-  font-style: normal;
-  color: inherit;
-}
-.variants__swatch {
-  width: 0.36em;
-  height: 0.36em;
-  border-radius: 50%;
-  opacity: 0.3;
-  transition:
-    opacity 0.5s,
-    transform 0.5s var(--ease-out);
-}
-.variants__item.is-active .variants__swatch {
-  opacity: 1;
-  transform: scale(1.15);
-}
-.variants__body {
+.projects__body {
   left: var(--gutter);
   bottom: 14vh;
   width: min(28vw, 420px);
@@ -439,7 +398,7 @@
   .feature {
     width: 40vw;
   }
-  .variants__body {
+  .projects__body {
     width: 40vw;
   }
 }
@@ -512,8 +471,8 @@
   .feature__body {
     font-size: 14px;
   }
-  .feature__stat {
-    margin-top: auto; /* pushed to the bottom of the stage, below the mug */
+  .feature__tags {
+    margin-top: auto; /* pushed to the bottom of the stage, below the 3D */
   }
   .blueprint {
     left: 50%;
@@ -529,15 +488,15 @@
     font-size: 8.4vw;
   }
 
-  .variants__eyebrow {
+  .projects__eyebrow {
     top: 11vh;
   }
-  .variants__list {
+  .projects__list {
     top: 15vh;
     translate: none;
     font-size: 8.5vw;
   }
-  .variants__body {
+  .projects__body {
     left: var(--gutter);
     right: var(--gutter);
     width: auto;

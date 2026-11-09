@@ -8,6 +8,8 @@ import { createMug } from './objects/mug.js';
 import { createPencil } from './objects/pencil.js';
 import { createUtilityKnife } from './objects/utilityKnife.js';
 import { createPaperClip } from './objects/paperClip.js';
+import { createGamepad } from './objects/gamepad.js';
+import { createVrHeadset } from './objects/vrHeadset.js';
 
 const COASTER = { radius: 5, height: 0.62 };
 const { lerp, clamp, degToRad } = THREE.MathUtils;
@@ -176,6 +178,20 @@ export async function createHeroScene(container, { onReady } = {}) {
   mug.scale.setScalar(MUG_SCALE);
   scene.add(mug);
   const glazeMat = mug.userData.glaze;
+
+  /* Capability actors (swap in at the centre stage by scale) ----------- */
+  const STAGE = new THREE.Vector3(0, 5.9, 0);
+  const pad = createGamepad();
+  const vr = createVrHeadset();
+  for (const a of [pad, vr]) {
+    a.position.copy(STAGE);
+    a.scale.setScalar(0.001);
+    a.visible = false;
+    scene.add(a);
+  }
+  const ease = (x) => x * x * (3 - 2 * x); // smoothstep for scale pops
+  const flipOffset = new THREE.Vector3();
+  const flipEuler = new THREE.Euler();
   const glazeColors = GLAZES.map((c) => new THREE.Color(c));
 
   /* Camera ------------------------------------------------------------ */
@@ -267,16 +283,47 @@ export async function createHeroScene(container, { onReady } = {}) {
     // Mug: on the coaster in the hero, scroll-driven transform in the story.
     const heroRotY = LAYOUT.mug.rotY + Math.sin(t * 0.35) * 0.2 * idle + pointer.sx * 0.3 * params.parallax;
     const storyRotY = view.ry + pointer.sx * 0.12 * params.parallax;
+    // Mug shrinks about its centre (origin is the foot, centre ≈ 3.9 up).
+    const ms = clamp(lerp(view.mugS, 1, h), 0, 1);
+    mug.visible = ms > 0.01;
+    mug.scale.setScalar(MUG_SCALE * Math.max(ease(ms), 0.001));
     mug.position.set(
       lerp(view.mx, LAYOUT.coaster.x, h),
-      lerp(view.my, mugBaseY, h),
+      lerp(view.my, mugBaseY, h) + (1 - ease(ms)) * 3.9,
       lerp(view.mz, LAYOUT.coaster.z, h),
     );
+    const flipAngle = view.userFlip * Math.PI;
     mug.rotation.set(
       lerp(view.rx, pointer.sy * 0.025 * params.parallax, h),
       lerp(storyRotY, heroRotY, h),
-      lerp(view.rz, 0, h),
+      lerp(view.rz, 0, h) + flipAngle,
     );
+    // The flip turns about the mug's centre, not its foot: shift the foot by
+    // c − Rz(θ)·c (c = centre offset), expressed in the mug's tilted frame.
+    if (flipAngle > 0.0001) {
+      const c = 3.9 * ease(ms);
+      flipOffset.set(c * Math.sin(flipAngle), c * (1 - Math.cos(flipAngle)), 0);
+      flipEuler.set(mug.rotation.x, mug.rotation.y, 0);
+      mug.position.add(flipOffset.applyEuler(flipEuler));
+    }
+
+    // Gamepad / headset: scale in, gentle float + idle turn.
+    const bob = Math.sin(t * 0.9) * 0.18 * idle;
+    [
+      [pad, view.padS, 0.95],
+      [vr, view.vrS, 0.92],
+    ].forEach(([a, sRaw, size]) => {
+      const s = ease(clamp(sRaw, 0, 1));
+      a.visible = s > 0.01;
+      if (!a.visible) return;
+      a.scale.setScalar(size * Math.max(s, 0.001));
+      a.position.set(STAGE.x, STAGE.y + bob, STAGE.z);
+      a.rotation.set(
+        view.arx - pointer.sy * 0.08 * params.parallax,
+        view.ary + Math.sin(t * 0.4) * 0.12 * idle + pointer.sx * 0.2 * params.parallax + (1 - s) * 1.2,
+        0,
+      );
+    });
 
     // Desk fade, lighting and glaze.
     applyDeskFade(clamp(view.desk, 0, 1));
@@ -308,7 +355,7 @@ export async function createHeroScene(container, { onReady } = {}) {
     renderer,
     params,
     state,
-    objects: { mug, coaster, mat, knife, creamPencil, greenPencil, deskGroup },
+    objects: { mug, pad, vr, coaster, mat, knife, creamPencil, greenPencil, deskGroup },
   };
 
   /* Cleanup ----------------------------------------------------------- */

@@ -48,9 +48,14 @@ scripts/
 
 ### Scroll story (GSAP + ScrollTrigger)
 
-After the hero, the page scrolls through a pinned, product-focused story whose order
-mirrors oryzo.ai: **statement → crafted → everyday → features (heat / weight / handle
-curve) → material macro → glaze variants → outro**.
+NEXT GEN is presented as a multidisciplinary creative technology team (game development,
+3D art & VR, creative design); the coffee mug is the hero visual, not a product.
+After the hero, the page scrolls through pinned sections that mirror oryzo.ai one-to-one:
+**statement → "powered by play" → "it's playable" → capabilities (gamepad / VR headset /
+handle-curve blueprint) → interactive flip toy → material macro → toolkit → how-we-work
+cards → projects (categories, case studies coming soon) → outro**. Oryzo's testimonials
+section is intentionally omitted (no invented reviews or clients). The full mapping is
+documented at the top of `src/story/storyConfig.js`.
 
 - `src/story/storyConfig.js` defines each section's length (viewport heights) and its
   3D keyframes (camera orbit, mug transform, lights, glaze, background glow).

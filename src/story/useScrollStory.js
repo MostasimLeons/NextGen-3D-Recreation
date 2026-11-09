@@ -2,13 +2,14 @@ import { useLayoutEffect } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { STORY } from './storyConfig.js';
-import { HERO_STATE } from '../three/sceneConfig.js';
+import { HERO_STATE, isUserKey } from '../three/sceneConfig.js';
 
 gsap.registerPlugin(ScrollTrigger);
 // Don't re-measure when only the mobile URL bar shows/hides.
 ScrollTrigger.config({ ignoreMobileResize: true });
+if (import.meta.env.DEV) window.__ScrollTrigger = ScrollTrigger; // debugging aid (dev only)
 
-const STATE_KEYS = Object.keys(HERO_STATE);
+const STATE_KEYS = Object.keys(HERO_STATE).filter((k) => !isUserKey(k));
 const pick = (obj) => Object.fromEntries(STATE_KEYS.map((k) => [k, obj[k]]));
 
 /**
@@ -153,16 +154,16 @@ export function useScrollStory(rig, rootRef) {
         toggleClass: { targets: document.documentElement, className: 'is-past-hero' },
       });
 
-      /* Variant list: highlight the active glaze ------------------------- */
+      /* Projects list: highlight the active category ---------------------- */
       const variantItems = root.querySelectorAll('[data-variant]');
       steps
-        .filter((s) => s.section === 'variants')
+        .filter((s) => s.section === 'projects')
         .forEach((s, j, arr) => {
           const nextStep = arr[j + 1];
           if (!variantItems[j]) return;
           // toggleClass stays correct after jumps (anchor links, fast scroll).
           ScrollTrigger.create({
-            trigger: sectionEl('variants'),
+            trigger: sectionEl('projects'),
             start: j === 0 ? 'top bottom' : pos((s.from + s.to) / 2),
             end: nextStep ? pos((nextStep.from + nextStep.to) / 2) : 'bottom top',
             toggleClass: { targets: variantItems[j], className: 'is-active' },
@@ -170,6 +171,28 @@ export function useScrollStory(rig, rootRef) {
         });
 
       if (reduced) return; // text stays static & visible
+
+      /* "How we work": horizontal card track scrubbed across the pin ------ */
+      const track = root.querySelector('[data-track]');
+      const processEl = sectionEl('process');
+      if (track && processEl) {
+        const len = STORY.find((s) => s.id === 'process').length;
+        gsap.fromTo(
+          track,
+          { x: () => window.innerWidth * 0.55 },
+          {
+            x: () => -(track.scrollWidth - window.innerWidth * 0.55),
+            ease: 'none',
+            scrollTrigger: {
+              trigger: processEl,
+              start: pos(-0.3),
+              end: pos(len - 1),
+              scrub: true,
+              invalidateOnRefresh: true,
+            },
+          },
+        );
+      }
 
       /* Typography ------------------------------------------------------- */
       for (const section of STORY) {

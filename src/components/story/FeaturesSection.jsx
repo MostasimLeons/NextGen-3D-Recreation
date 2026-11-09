@@ -4,12 +4,13 @@ import { content } from '../../content.js';
 const features = content.story.features;
 
 /**
- * Pinned 3-step feature sequence: heat (glow + counter), weight, and the
- * handle-curve close-up with a blueprint circle drawing on (≈ oryzo features).
+ * Pinned 3-step capability sequence (≈ oryzo features): game development
+ * (gamepad), 3D art & VR (headset), creative design (handle close-up with a
+ * blueprint circle drawing on).
  */
 export default function FeaturesSection() {
   return (
-    <StorySection id="features" anchor="features" label="Features">
+    <StorySection id="features" anchor="features" label="Capabilities">
       {features.map((f, i) => (
         <div key={f.eyebrow} className={`feature feature--${i}`} data-step={i}>
           <p className="story-eyebrow" data-reveal>
@@ -24,21 +25,11 @@ export default function FeaturesSection() {
           <p className="feature__body" data-reveal>
             {f.body}
           </p>
-          <div className="feature__stat" data-reveal>
-            <span className="feature__stat-value">
-              {f.stat.to !== undefined ? (
-                <>
-                  <span data-counter data-from={f.stat.from} data-to={f.stat.to}>
-                    {f.stat.to}
-                  </span>
-                  {f.stat.unit}
-                </>
-              ) : (
-                f.stat.value
-              )}
-            </span>
-            <span className="feature__stat-label">{f.stat.label}</span>
-          </div>
+          <ul className="feature__tags" data-reveal>
+            {f.tags.map((tag) => (
+              <li key={tag}>{tag}</li>
+            ))}
+          </ul>
         </div>
       ))}
 

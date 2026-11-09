@@ -1,81 +1,117 @@
 /**
- * All landing-page copy lives here so wording / branding can be changed
- * without touching components. Copy is original placeholder text.
+ * All page copy lives here so wording can change without touching components.
+ *
+ * NEXT GEN is a multidisciplinary creative technology team. The coffee mug is
+ * the hero visual (an object on the team's desk), not a product for sale.
+ * Copy is original; it states capabilities only — no invented clients,
+ * team members, projects or achievements.
  */
 export const content = {
   brand: 'NEXT GEN',
-  tagline: 'Made for mornings. Built to last.',
+  tagline: 'Made for players. Built for worlds.',
   nav: [
     { label: 'Intro', href: '#intro', active: true },
-    { label: 'Features', href: '#features' },
-    { label: 'Product', href: '#product' },
+    { label: 'Capabilities', href: '#features' },
+    { label: 'Projects', href: '#projects' },
     { label: 'Contact', href: '#contact' },
   ],
-  sideTab: 'NEXT GEN · Mug 01',
-  lead: 'Twice-fired stoneware, balanced to hold heat and sit steady in your hand. NEXT GEN makes the first pour of the day feel considered.',
+  sideTab: 'NEXT GEN · Creative Tech',
+  lead: 'A multidisciplinary creative technology team. Games, 3D art, VR and design — crafted with the same care as the first coffee of the day.',
   card: {
-    title: ['Glazed', 'stoneware,', 'fired twice,', 'made to last.'],
-    body: 'The next generation of the everyday coffee mug.',
+    title: ['Games,', '3D, VR', '& design by', 'NEXT GEN.'],
+    body: 'One team, four disciplines, a lot of coffee.',
   },
-  video: { label: 'Play', caption: 'Watch the NEXT GEN film' },
-  menuFoot: { label: 'Studio enquiries', cta: 'Get in touch', href: '#contact' },
+  video: { label: 'Soon', caption: 'NEXT GEN showreel — coming soon' },
+  menuFoot: { label: 'New projects', cta: 'Get in touch', href: '#contact' },
   scrollHint: 'Scroll to continue',
 
-  /* Scroll story (Phase 3) — original copy, structure mirrors oryzo.ai */
+  /* Scroll story — structure mirrors oryzo.ai section by section */
   story: {
     statement: {
-      title: ["Isn't just", 'a mug.'],
-      body: "NEXT GEN isn't just a mug. It's what happens when you obsess over the one object you touch first every morning.",
+      title: ["Isn't about", 'the mug.'],
+      body: 'The mug just got your attention. NEXT GEN is a creative technology team that builds games, 3D worlds, VR experiences and design.',
     },
     crafted: {
-      title: 'Crafted by fire',
+      title: 'Powered by play',
       mark: '*',
-      label: 'NEXT GEN-01',
-      aside: ['Clay fills in the gaps.', 'Heat does the rest.'],
-      footnote: '* and a very patient kiln',
+      label: 'UNITY · UNREAL ENGINE',
+      aside: ['Games fill the gaps.', 'Coffee does the rest.'],
+      footnote: '* and a lot of playtesting',
     },
     everyday: {
-      label: 'So balanced,',
-      word: "it's everyday",
+      label: 'So immersive,',
+      word: "it's playable",
     },
     features: [
       {
-        eyebrow: 'Thermal stoneware',
-        title: ['Holds the', 'heat'],
-        body: 'Thick, twice-fired walls keep the first sip and the last one closer together. Your coffee stays the temperature you meant it to be.',
-        stat: { from: 20, to: 72, unit: '°C', label: 'Still above, 20 min after the pour' },
+        eyebrow: 'Game development',
+        title: ['Built to be', 'played'],
+        body: 'Interactive games and real-time experiences, from first prototype to polished build. Mechanics first, then everything that makes them feel good.',
+        tags: ['Unity', 'Unreal Engine', 'Interactive games'],
       },
       {
-        eyebrow: 'Centred weight',
-        title: ['Perfectly', 'weighted'],
-        body: 'A low centre of mass and a wide, unglazed foot. It settles where you put it — on the desk, the sofa arm, the stack of notebooks.',
-        stat: { value: '340 g', label: 'Weight, balanced low' },
+        eyebrow: '3D art & VR',
+        title: ['Worlds you can', 'step into'],
+        body: 'Models, animation and virtual reality made to be explored — not just looked at. Immersive experiences built around how people actually move.',
+        tags: ['3D modeling', '3D animation', 'Virtual reality', 'Immersive experiences'],
       },
       {
-        eyebrow: 'Hand-pulled handle',
-        title: ['The signature', 'curve'],
-        body: 'One continuous curve, pulled by hand, shaped for three fingers and a thumb. Room for knuckles. No pinch points.',
-        stat: { value: 'R 24 mm', label: 'Inner radius of the grip' },
+        eyebrow: 'Creative design',
+        title: ['Every curve', 'considered'],
+        body: 'Interfaces, visuals and motion designed with the same precision as a hand-pulled handle. If it moves, it moves for a reason.',
+        tags: ['UI/UX design', 'Visual design', 'Motion graphics'],
       },
     ],
-    material: {
-      eyebrow: 'Precision glaze, zero drama',
-      title: ['Twice-fired', 'reactive glaze'],
-      body: 'A food-safe glaze that pools and breaks over iron speckle, so no two mugs are quite the same.',
-      spec: { label: 'Surface gloss (est.)', value: '85 GU' },
+    interactive: {
+      eyebrow: 'Interactive by default',
+      title: ['Smart flip', 'interaction'],
+      body: 'Write a message. Flip it. Everything we make should respond when you touch it — even this.',
+      placeholder: 'Type a message',
+      flip: 'Flip message',
+      unflip: 'Flip it back',
+      initial: 'Hello from NEXT GEN',
     },
-    variants: {
-      eyebrow: 'Choose your own',
+    material: {
+      eyebrow: 'Precision detail, zero drama',
+      title: ['Detail you', 'can feel'],
+      body: 'Materials, light and shaders, obsessed over until a speckle of glaze reads right in real time.',
+      spec: { label: 'Coffee per shader (est.)', value: '3 cups' },
+    },
+    toolkit: {
+      eyebrow: 'What we work with',
+      title: ['Real-time', 'first'],
+      groups: [
+        { name: 'Game development', items: ['Unity', 'Unreal Engine', 'Interactive games'] },
+        { name: '3D art', items: ['3D modeling', '3D animation'] },
+        { name: 'VR', items: ['Virtual reality', 'Immersive experiences'] },
+        { name: 'Creative design', items: ['UI/UX design', 'Visual design', 'Motion graphics'] },
+      ],
+    },
+    process: {
+      eyebrow: 'How we work',
+      title: 'Runs on the edge of play',
+      cards: [
+        { kicker: 'Always on', title: 'Runs on coffee', body: 'Fuel: espresso. Uptime: whenever the idea is good.', meta: 'Power draw (est.): 2 cups / hour' },
+        { kicker: 'One team', title: 'Four disciplines', body: 'Game development, 3D art, VR and creative design sit at the same desk.', meta: 'Hand-offs: as few as possible' },
+        { kicker: 'Playtested', title: 'Fun first', body: "If it isn't fun to use, it isn't finished. We test with real hands early and often.", meta: 'Test conditions: real people' },
+        { kicker: 'Real-time', title: 'Built live', body: 'We work inside the engine, so what you see in review is what ships.', meta: 'Engines: Unity · Unreal' },
+      ],
+    },
+    projects: {
+      eyebrow: 'Our projects',
+      note: 'Case studies coming soon',
       items: [
-        { name: 'Cream', body: 'The original. Warm white glaze over speckled stoneware — quietly at home everywhere.' },
-        { name: 'Sand', body: 'A sun-baked glaze with a little more warmth. Same balance, softer mood.' },
-        { name: 'Sage', body: 'Muted green, drawn from the cutting mat it was designed on.' },
+        { name: 'Game projects', body: 'Playable games and interactive prototypes built in Unity and Unreal Engine.' },
+        { name: '3D projects', body: 'Modeled, textured and animated assets and scenes, made for real-time.' },
+        { name: 'VR experiences', body: 'Immersive virtual reality you move through, not just watch.' },
+        { name: 'Creative work', body: 'UI/UX, visual design and motion graphics that tie it all together.' },
       ],
     },
     outro: {
-      line: 'Made for mornings.',
-      body: 'NEXT GEN is a concept product, built as a 3D web experience.',
-      cta: { label: 'Back to top', href: '#intro' },
+      line: ['We got you scrolling with a coffee mug.', 'Imagine what we can build for you.'],
+      body: 'NEXT GEN — games, 3D art, VR and creative design.',
+      cta: { label: 'Get in touch', href: '#contact' },
+      back: { label: 'Back to top', href: '#intro' },
     },
   },
 };

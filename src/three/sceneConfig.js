@@ -70,4 +70,15 @@ export const HERO_STATE = {
   heat: 0,
   env: 0.4,
   glaze: 0,
+  // Stage actors sharing the centre (0, 5.9, 0): visibility as scale 0–1.
+  mugS: 1,
+  padS: 0,
+  vrS: 0,
+  arx: 0, // actor rotation (gamepad / headset), radians
+  ary: 0,
+  // Driven by UI interaction, never by the scroll timeline (prefix "user").
+  userFlip: 0,
 };
+
+/** Keys the scroll timeline must not touch (owned by UI interactions). */
+export const isUserKey = (k) => k.startsWith('user');
