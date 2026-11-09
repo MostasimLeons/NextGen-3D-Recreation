@@ -32,13 +32,17 @@
   z-index: 1;
   pointer-events: none;
   background:
-    radial-gradient(120% 90% at 55% 45%, transparent 45%, rgba(20, 9, 3, 0.42) 100%),
-    linear-gradient(180deg, rgba(20, 9, 3, 0.22) 0%, transparent 20%),
-    linear-gradient(0deg, rgba(20, 9, 3, 0.25) 0%, transparent 18%);
+    radial-gradient(120% 95% at 52% 48%, transparent 50%, rgba(var(--c-shade), 0.5) 100%),
+    linear-gradient(180deg, rgba(var(--c-shade), 0.2) 0%, transparent 20%),
+    linear-gradient(0deg, rgba(var(--c-shade), 0.28) 0%, transparent 20%);
 }
 
 .hero > :not(.hero-canvas):not(.hero__shade) {
   z-index: 2;
+}
+/* Header hosts the mobile drawer, which must cover the other overlays */
+.hero > :not(.hero-canvas):not(.hero__shade).header {
+  z-index: 10;
 }
 
 /* Brand block ------------------------------------------------------- */
@@ -84,7 +88,7 @@
   font-weight: 500;
   letter-spacing: -0.01em;
   text-wrap: pretty;
-  text-shadow: 0 1px 18px rgba(20, 9, 3, 0.35);
+  text-shadow: 0 1px 18px rgba(var(--c-shade), 0.4);
 }
 
 /* Tablet ------------------------------------------------------------- */

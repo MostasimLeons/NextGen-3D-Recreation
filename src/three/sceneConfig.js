@@ -5,8 +5,8 @@
  */
 export const LAYOUT = {
   mat: { x: 8.4, z: -3.2, rotY: 0.025 },
-  coaster: { x: 0.6, z: -0.2 },
-  mug: { rotY: 0.3 }, // printed mark faces the camera, handle to the right
+  coaster: { x: 0, z: 1.4 }, // product sits dead-centre, like the reference
+  mug: { rotY: 0.62, decalAngle: -0.5 }, // handle up-right (clear of the text); mark faces camera
   creamPencil: { x: 8.3, z: -7.7, rotY: -0.93 },
   greenPencil: { x: -17.6, z: 3.4, rotY: 0.59 },
   knife: { x: 15.2, z: 7.6, rotY: 2.42 },
@@ -22,7 +22,7 @@ export const LAYOUT = {
  *   gsap.to(rig.params, { zoom: 1.8, tilt: 40, scrollTrigger: { ... } })
  */
 export const DEFAULT_PARAMS = {
-  tilt: 24, // camera pitch away from straight-down, degrees
+  tilt: 22, // camera pitch away from straight-down, degrees
   zoom: 1, // >1 moves the camera closer
   focusX: 0, // extra camera target offset (world units)
   focusZ: 0,

@@ -18,5 +18,6 @@ export const content = {
     body: 'The next generation of the everyday coffee mug.',
   },
   video: { label: 'Play', caption: 'Watch the NEXT GEN film' },
+  menuFoot: { label: 'Studio enquiries', cta: 'Get in touch', href: '#contact' },
   scrollHint: 'Scroll to continue',
 };

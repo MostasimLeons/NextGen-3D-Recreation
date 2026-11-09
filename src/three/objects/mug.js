@@ -15,6 +15,7 @@ export function createMug({
   height = 5.4,
   wall = 0.16,
   mark = 'NEXT GEN',
+  decalAngle = 0, // where the printed mark sits around the body (radians, 0 = +Z)
   fill = 0.86,
 } = {}) {
   const R = radius;
@@ -87,7 +88,7 @@ export function createMug({
   const arc = 1.25; // radians of wall covered
   const decalH = 1.9;
   const decal = new THREE.Mesh(
-    new THREE.CylinderGeometry(R + 0.006, R + 0.006, decalH, 48, 1, true, -arc / 2, arc),
+    new THREE.CylinderGeometry(R + 0.006, R + 0.006, decalH, 48, 1, true, decalAngle - arc / 2, arc),
     new THREE.MeshPhysicalMaterial({
       map: createMugDecalTexture(mark),
       transparent: true,

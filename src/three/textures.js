@@ -48,9 +48,9 @@ export function createWoodTextures() {
 
   // Warm base with slow tonal variation along the boards.
   const base = ctx.createLinearGradient(0, 0, 0, H);
-  base.addColorStop(0, '#6a3b1f');
-  base.addColorStop(0.5, '#7a4526');
-  base.addColorStop(1, '#5e341b');
+  base.addColorStop(0, '#8e5b31');
+  base.addColorStop(0.5, '#9e693a');
+  base.addColorStop(1, '#84522b');
   ctx.fillStyle = base;
   ctx.fillRect(0, 0, W, H);
 
@@ -107,7 +107,7 @@ export function createMatTexture({ cols, rows, border }) {
   const ctx = canvas.getContext('2d');
 
   // Olive-green base with soft mottling.
-  ctx.fillStyle = '#36432f';
+  ctx.fillStyle = '#2a4a34';
   ctx.fillRect(0, 0, W, H);
   for (let i = 0; i < 90; i++) {
     const r = 80 + rand() * 260;
