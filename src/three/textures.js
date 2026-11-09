@@ -270,8 +270,8 @@ export function createCorkTextures() {
 
 /** Warm white glaze with fine iron speckle (reactive-glaze stoneware look). */
 export function createGlazeTexture() {
-  const W = 1024;
-  const H = 512;
+  const W = 2048;
+  const H = 1024;
   const rand = mulberry32(314);
   const canvas = makeCanvas(W, H);
   const ctx = canvas.getContext('2d');
@@ -285,14 +285,47 @@ export function createGlazeTexture() {
     ctx.fill();
   }
   // Iron speckles.
-  for (let i = 0; i < 1100; i++) {
-    const r = 0.5 + Math.pow(rand(), 3) * 1.6;
-    ctx.fillStyle = `rgba(${70 + rand() * 40}, ${45 + rand() * 25}, ${30 + rand() * 20}, ${0.35 + rand() * 0.5})`;
+  for (let i = 0; i < 2600; i++) {
+    const r = 0.5 + Math.pow(rand(), 3) * 1.8;
+    ctx.fillStyle = `rgba(${90 + rand() * 40}, ${62 + rand() * 25}, ${44 + rand() * 20}, ${0.22 + rand() * 0.4})`;
     ctx.beginPath();
     ctx.arc(rand() * W, rand() * H, r, 0, Math.PI * 2);
     ctx.fill();
   }
   return toTexture(canvas);
+}
+
+/**
+ * Tileable micro-surface for the glaze: soft pooling ripples + pinholes.
+ * Used as a repeated bump map so macro close-ups keep surface detail.
+ */
+export function createGlazeBumpTexture() {
+  const S = 512;
+  const rand = mulberry32(808);
+  const canvas = makeCanvas(S, S);
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = 'rgb(128,128,128)';
+  ctx.fillRect(0, 0, S, S);
+  // Draw each blob 9x (wrapped) so the tile is seamless.
+  const blob = (x, y, r, fill) => {
+    for (let ox = -S; ox <= S; ox += S) {
+      for (let oy = -S; oy <= S; oy += S) {
+        const g = ctx.createRadialGradient(x + ox, y + oy, 0, x + ox, y + oy, r);
+        g.addColorStop(0, fill);
+        g.addColorStop(1, 'rgba(128,128,128,0)');
+        ctx.fillStyle = g;
+        ctx.fillRect(x + ox - r, y + oy - r, r * 2, r * 2);
+      }
+    }
+  };
+  for (let i = 0; i < 160; i++) {
+    const v = rand() > 0.5 ? 150 : 108;
+    blob(rand() * S, rand() * S, 18 + rand() * 60, `rgba(${v},${v},${v},0.5)`);
+  }
+  for (let i = 0; i < 260; i++) blob(rand() * S, rand() * S, 1.5 + rand() * 2.5, 'rgba(40,40,40,0.9)');
+  const tex = toTexture(canvas, { srgb: false });
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  return tex;
 }
 
 /** Transparent decal texture carrying the printed product mark. */

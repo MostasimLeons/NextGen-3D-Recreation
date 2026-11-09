@@ -1,7 +1,38 @@
 .header {
-  position: absolute;
+  position: fixed;
   inset: 0 0 auto 0;
   height: 0;
+  z-index: 30;
+}
+
+/* Small wordmark replaces the dot once the hero is scrolled past */
+.header__logo {
+  position: absolute;
+  top: clamp(18px, 1.7vw, 28px);
+  left: var(--gutter);
+  font-family: var(--f-display);
+  font-weight: 600;
+  font-size: clamp(14px, 1.2vw, 18px);
+  letter-spacing: -0.02em;
+  line-height: 1;
+  opacity: 0;
+  transform: translateY(-6px);
+  pointer-events: none;
+  transition:
+    opacity 0.45s var(--ease-out),
+    transform 0.45s var(--ease-out);
+}
+.is-past-hero .header__logo {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+}
+.header__dot {
+  transition: opacity 0.3s;
+}
+.is-past-hero .header__dot {
+  opacity: 0;
+  pointer-events: none;
 }
 
 .header__dot {

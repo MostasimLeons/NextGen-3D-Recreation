@@ -4,6 +4,12 @@
   box-sizing: border-box;
 }
 
+html {
+  /* Scroll-driven page: stop the browser nudging scroll position when
+     GSAP toggles element visibility (ScrollTrigger recommendation). */
+  overflow-anchor: none;
+}
+
 html,
 body {
   margin: 0;

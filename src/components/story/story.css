@@ -1,0 +1,566 @@
+/* ==================================================================== */
+/* Scroll story — layout & typography (3D lives in the fixed SceneLayer) */
+/* ==================================================================== */
+
+.page {
+  position: relative;
+  z-index: 1;
+}
+
+.story-section {
+  position: relative;
+  height: calc(var(--len) * 100vh);
+  height: calc(var(--len) * 100svh);
+}
+
+/* Pinned stage: stays on screen for the section's whole scroll length */
+.story-section__pin {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100svh;
+  overflow: hidden;
+  padding: 0 var(--gutter);
+}
+.story-section__pin > * {
+  position: absolute;
+}
+
+/* Shared bits ---------------------------------------------------------- */
+.story-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  font-size: clamp(10px, 0.82vw, 13px);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.story-eyebrow__index {
+  font-family: var(--f-mono);
+  font-weight: 400;
+  color: var(--c-orange);
+}
+.story-eyebrow--accent {
+  color: var(--c-orange-glow);
+}
+
+.story-display {
+  font-family: var(--f-display);
+}
+
+/* 1. Statement ---------------------------------------------------------- */
+.statement__title {
+  left: var(--gutter);
+  top: 50%;
+  translate: 0 -50%;
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  font-size: clamp(34px, 4.4vw, 84px);
+  line-height: 0.95;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+}
+.statement__body {
+  right: calc(var(--gutter) * 2.2);
+  top: 50%;
+  translate: 0 -50%;
+  width: min(23vw, 400px);
+  font-size: clamp(16px, 1.55vw, 28px);
+  line-height: 1.28;
+  letter-spacing: -0.01em;
+}
+
+/* 2. Crafted ------------------------------------------------------------ */
+.crafted__head {
+  left: 0;
+  right: 0;
+  top: clamp(64px, 9vh, 110px);
+  text-align: center;
+}
+.crafted__title {
+  margin: 0;
+  font-family: var(--f-display);
+  font-weight: 600;
+  font-size: clamp(44px, 7.4vw, 140px);
+  line-height: 1;
+  letter-spacing: -0.04em;
+}
+.crafted__title sup {
+  font-size: 0.42em;
+  vertical-align: 0.95em;
+  margin-left: 0.04em;
+}
+.crafted__label {
+  margin-top: 6px;
+  margin-left: 22vw;
+  font-family: var(--f-mono);
+  font-size: clamp(10px, 0.8vw, 13px);
+  color: var(--c-orange-glow);
+  letter-spacing: 0.06em;
+}
+.crafted__aside {
+  right: calc(var(--gutter) * 3);
+  bottom: 18vh;
+  display: flex;
+  flex-direction: column;
+  font-size: clamp(13px, 1.1vw, 18px);
+  line-height: 1.15;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+.crafted__footnote {
+  right: calc(var(--gutter) * 3);
+  bottom: calc(18vh - 2.2em);
+  font-size: clamp(11px, 0.8vw, 13px);
+  color: var(--c-cream-dim);
+}
+
+/* 3. Everyday (giant word) ---------------------------------------------- */
+.everyday__frame {
+  left: 50%;
+  top: 50%;
+  width: min(40vw, 62vh);
+  height: min(70vh, 92vw);
+  translate: -50% -50%;
+  border: 1px solid rgba(255, 237, 215, 0.22);
+}
+.everyday__label {
+  left: var(--gutter);
+  top: calc(50% - clamp(70px, 9vw, 170px));
+  font-size: clamp(12px, 1.1vw, 18px);
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--c-cream-dim);
+}
+.everyday__word {
+  left: 0;
+  right: 0;
+  top: 50%;
+  margin: 0;
+  translate: 0 -50%;
+  text-align: center;
+  font-family: var(--f-display);
+  font-weight: 600;
+  font-size: clamp(64px, 13.5vw, 260px);
+  line-height: 0.9;
+  letter-spacing: -0.05em;
+  white-space: nowrap;
+  color: rgba(255, 237, 215, 0.92);
+  mix-blend-mode: normal;
+  will-change: transform, filter, opacity;
+}
+
+/* 4. Features ----------------------------------------------------------- */
+.feature {
+  top: 50%;
+  translate: 0 -50%;
+  width: min(30vw, 480px);
+  display: flex;
+  flex-direction: column;
+  gap: clamp(12px, 1.4vw, 22px);
+}
+.feature--0 {
+  left: var(--gutter);
+}
+.feature--1,
+.feature--2 {
+  right: calc(var(--gutter) * 2.2);
+}
+.feature__title {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  font-family: var(--f-display);
+  font-weight: 600;
+  font-size: clamp(38px, 4.6vw, 88px);
+  line-height: 0.92;
+  letter-spacing: -0.035em;
+}
+.feature__body {
+  margin: 0;
+  max-width: 26em;
+  font-size: clamp(14px, 1.15vw, 19px);
+  line-height: 1.4;
+  font-weight: 400;
+  color: rgba(255, 237, 215, 0.82);
+}
+.feature__stat {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-top: 14px;
+  border-top: 1px solid transparent;
+  border-image: repeating-linear-gradient(90deg, var(--c-cream-dim) 0 2px, transparent 2px 5px) 1;
+}
+.feature__stat-value {
+  font-family: var(--f-display);
+  font-size: clamp(28px, 2.6vw, 48px);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+.feature--0 .feature__stat-value {
+  color: var(--c-orange-glow);
+}
+.feature__stat-label {
+  font-family: var(--f-mono);
+  font-size: clamp(10px, 0.78vw, 12px);
+  text-transform: uppercase;
+  color: var(--c-cream-dim);
+}
+
+/* Blueprint circle around the handle close-up */
+.blueprint {
+  left: 34%; /* lines up with the handle in the close-up framing */
+  top: 50%;
+  width: min(46vh, 34vw);
+  height: auto;
+  translate: -50% -50%;
+  overflow: visible;
+}
+.blueprint__line,
+.blueprint__axis {
+  fill: none;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+}
+.blueprint__line {
+  stroke: rgba(255, 237, 215, 0.75);
+  stroke-width: 0.6;
+}
+.blueprint__axis {
+  stroke: rgba(255, 237, 215, 0.25);
+  stroke-width: 0.4;
+}
+.blueprint__node rect {
+  fill: var(--c-orange-glow);
+}
+.blueprint__handles {
+  stroke: var(--c-orange-glow);
+  stroke-width: 0.8;
+  fill: none;
+}
+
+/* 5. Material ----------------------------------------------------------- */
+.material__head {
+  left: 0;
+  right: 0;
+  top: clamp(80px, 12vh, 130px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  text-align: center;
+  text-shadow: 0 2px 24px rgba(var(--c-shade), 0.55);
+}
+.material__title {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  font-size: clamp(30px, 3.6vw, 66px);
+  line-height: 0.98;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: -0.015em;
+}
+.material__body {
+  max-width: 30em;
+  font-size: clamp(14px, 1.1vw, 18px);
+  line-height: 1.4;
+}
+.spec-card {
+  left: 50%;
+  bottom: clamp(40px, 9vh, 96px);
+  translate: -50% 0;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 14px;
+  min-width: min(340px, 80vw);
+  padding: 12px 16px;
+  background: rgba(var(--c-shade), 0.55);
+  border: 1px solid var(--c-glass-border);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+.spec-card__swatch {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 35% 30%, #fff8ee, #e9dfcf 45%, #b9ab95 100%);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.2);
+}
+.spec-card__label {
+  font-family: var(--f-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  color: var(--c-cream-dim);
+}
+.spec-card__value {
+  font-family: var(--f-display);
+  font-size: 22px;
+  font-weight: 600;
+}
+
+/* 6. Variants ----------------------------------------------------------- */
+.variants__eyebrow {
+  left: var(--gutter);
+  top: 22vh;
+}
+.variants__list {
+  left: var(--gutter);
+  top: 50%;
+  translate: 0 -50%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15em;
+  font-family: var(--f-display);
+  font-weight: 600;
+  font-size: clamp(30px, 4vw, 76px);
+  line-height: 1.02;
+  letter-spacing: -0.035em;
+}
+.variants__item {
+  display: flex;
+  align-items: center;
+  gap: 0.35em;
+  color: rgba(255, 237, 215, 0.22);
+  transition: color 0.5s var(--ease-out);
+}
+.variants__item.is-active {
+  color: var(--c-cream);
+}
+.variants__item em {
+  font-style: normal;
+  color: inherit;
+}
+.variants__swatch {
+  width: 0.36em;
+  height: 0.36em;
+  border-radius: 50%;
+  opacity: 0.3;
+  transition:
+    opacity 0.5s,
+    transform 0.5s var(--ease-out);
+}
+.variants__item.is-active .variants__swatch {
+  opacity: 1;
+  transform: scale(1.15);
+}
+.variants__body {
+  left: var(--gutter);
+  bottom: 14vh;
+  width: min(28vw, 420px);
+  font-size: clamp(14px, 1.15vw, 19px);
+  line-height: 1.4;
+  color: rgba(255, 237, 215, 0.85);
+}
+
+/* 7. Outro -------------------------------------------------------------- */
+.outro__wordmark {
+  left: 0;
+  right: 0;
+  top: 50%;
+  margin: 0;
+  translate: 0 -62%;
+  text-align: center;
+  font-family: var(--f-display);
+  font-weight: 600;
+  font-size: clamp(80px, 19vw, 360px);
+  letter-spacing: -0.05em;
+  line-height: 0.85;
+  white-space: nowrap;
+  color: rgba(255, 237, 215, 0.12);
+}
+.outro__foot {
+  left: var(--gutter);
+  right: var(--gutter);
+  bottom: clamp(28px, 6vh, 64px);
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-areas:
+    'line cta'
+    'body cta';
+  align-items: end;
+  gap: 6px 24px;
+}
+.outro__line {
+  grid-area: line;
+  font-size: clamp(24px, 2.6vw, 48px);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+.outro__body {
+  grid-area: body;
+  font-size: clamp(13px, 1vw, 16px);
+  color: var(--c-cream-dim);
+}
+.outro__cta {
+  grid-area: cta;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  height: 40px;
+  padding: 0 20px;
+  border-radius: 999px;
+  background: var(--c-cream);
+  color: var(--c-ink);
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  transition: background 0.3s;
+}
+.outro__cta:hover {
+  background: #fff6ea;
+}
+.outro__cta-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--c-orange);
+}
+
+/* ==================================================================== */
+/* Tablet                                                               */
+/* ==================================================================== */
+@media (max-width: 1024px) {
+  .statement__body {
+    width: 32vw;
+  }
+  .feature {
+    width: 40vw;
+  }
+  .variants__body {
+    width: 40vw;
+  }
+}
+
+/* ==================================================================== */
+/* Mobile: text stacks top/bottom, the mug sits in between               */
+/* ==================================================================== */
+@media (max-width: 640px) {
+  .statement__title {
+    top: 13vh;
+    translate: none;
+    font-size: 11vw;
+  }
+  .statement__body {
+    left: var(--gutter);
+    right: var(--gutter);
+    top: auto;
+    bottom: 9vh;
+    translate: none;
+    width: auto;
+    font-size: 17px;
+  }
+
+  .crafted__head {
+    top: 12vh;
+  }
+  .crafted__title {
+    font-size: 12.5vw;
+  }
+  .crafted__label {
+    margin-left: 0;
+  }
+  .crafted__aside,
+  .crafted__footnote {
+    right: var(--gutter);
+  }
+  .crafted__aside {
+    bottom: 12vh;
+  }
+  .crafted__footnote {
+    bottom: calc(12vh - 2.2em);
+  }
+
+  .everyday__frame {
+    width: 70vw;
+    height: 52vh;
+  }
+  .everyday__label {
+    top: calc(50% - 15vw);
+  }
+  .everyday__word {
+    font-size: 15.5vw;
+  }
+
+  .feature {
+    left: var(--gutter) !important;
+    right: var(--gutter) !important;
+    top: 11vh;
+    bottom: 6vh;
+    translate: none;
+    width: auto;
+    gap: 10px;
+  }
+  .feature__title {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 0 0.25em;
+    font-size: 9.5vw;
+  }
+  .feature__body {
+    font-size: 14px;
+  }
+  .feature__stat {
+    margin-top: auto; /* pushed to the bottom of the stage, below the mug */
+  }
+  .blueprint {
+    left: 50%;
+    width: 72vw;
+    top: 60%;
+  }
+
+  .material__head {
+    top: 11vh;
+    padding: 0 var(--gutter);
+  }
+  .material__title {
+    font-size: 8.4vw;
+  }
+
+  .variants__eyebrow {
+    top: 11vh;
+  }
+  .variants__list {
+    top: 15vh;
+    translate: none;
+    font-size: 8.5vw;
+  }
+  .variants__body {
+    left: var(--gutter);
+    right: var(--gutter);
+    width: auto;
+    bottom: 7vh;
+    font-size: 14px;
+  }
+
+  .outro__wordmark {
+    font-size: 23vw;
+    translate: 0 -150%;
+  }
+  .outro__foot {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      'line'
+      'body'
+      'cta';
+    gap: 8px;
+  }
+  .outro__cta {
+    justify-self: start;
+    margin-top: 10px;
+  }
+}
+
+/* Reduced motion: GSAP adds no transforms; nothing else to do here */

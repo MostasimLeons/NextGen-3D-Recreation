@@ -11,6 +11,9 @@ export default function Header() {
   return (
     <header className="header">
       <a className="header__dot" href="#intro" aria-label={`${content.brand} home`} />
+      <a className="header__logo" href="#intro" tabIndex={-1} aria-hidden="true">
+        {content.brand}
+      </a>
       <nav className="header__nav" aria-label="Primary">
         {content.nav.map((item) => (
           <a
