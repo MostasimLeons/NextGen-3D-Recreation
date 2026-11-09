@@ -202,8 +202,12 @@ function Get-RepoSlug {
 function Get-GitHubToken {
   # Ask Git Credential Manager for the github.com sign-in it already stores.
   # If none is stored, GCM shows its own sign-in window (browser / device code).
-  $req = "protocol=https`nhost=github.com`n`n"
-  $out = $req | git credential fill 2>$null
+  # The request goes through a temp file: Windows PowerShell's pipe to native
+  # commands mangles the line endings git expects. The file holds no secret.
+  $req = Join-Path $env:TEMP "git-sync-cred-$PID.txt"
+  [IO.File]::WriteAllText($req, "protocol=https`nhost=github.com`n`n", (New-Object Text.ASCIIEncoding))
+  try { $out = cmd /c "git credential fill < `"$req`"" 2>$null }
+  finally { Remove-Item $req -ErrorAction SilentlyContinue }
   $line = $out | Where-Object { $_ -like 'password=*' } | Select-Object -First 1
   if (-not $line) { throw 'No GitHub sign-in available. Run a git push once to sign in, then retry.' }
   return $line.Substring(9)
@@ -219,10 +223,28 @@ function Invoke-GitHub($Method, $Path, $Body) {
   }
   $params = @{ Method = $Method; Uri = "https://api.github.com$Path"; Headers = $headers }
   if ($Body) { $params.Body = ($Body | ConvertTo-Json -Depth 5); $params.ContentType = 'application/json' }
-  return Invoke-RestMethod @params
+  try {
+    return Invoke-RestMethod @params
+  }
+  catch {
+    $detail = $_.ErrorDetails.Message
+    if ($detail) {
+      try {
+        $j = $detail | ConvertFrom-Json
+        $detail = $j.message
+        if ($j.errors) { $detail += ' - ' + (($j.errors | ForEach-Object { if ($_.message) { $_.message } else { "$($_.field) $($_.code)" } }) -join '; ') }
+      } catch { }
+    }
+    throw "GitHub API $Method $Path failed: $($_.Exception.Message) $detail"
+  }
 }
 
-function Test-Gh { return [bool](Get-Command gh -ErrorAction SilentlyContinue) }
+function Test-Gh {
+  # Use the GitHub CLI only when it is installed AND signed in.
+  if (-not (Get-Command gh -ErrorAction SilentlyContinue)) { return $false }
+  & gh auth status *> $null
+  return ($LASTEXITCODE -eq 0)
+}
 
 function New-PullRequest {
   $branch = Get-Branch
@@ -240,10 +262,14 @@ function New-PullRequest {
 
   Write-Step "Commits that will be in the PR ($branch -> $Base)"
   git --no-pager log --oneline "origin/$Base..HEAD"
-  if (-not (Confirm-Action "Open PR '$Title' on $slug?")) { Write-Warn 'Cancelled.'; return }
+  if (-not (Confirm-Action "Open PR '$Title' on ${slug}?")) { Write-Warn 'Cancelled.'; return }
 
   $bodyFile = Join-Path (Get-Location) '.github/pull_request_template.md'
-  $body = if (Test-Path $bodyFile) { Get-Content $bodyFile -Raw } else { '' }
+  # ReadAllText -> a plain string (Get-Content adds PS metadata that would
+  # leak into the JSON body).
+  $template = if (Test-Path $bodyFile) { [IO.File]::ReadAllText($bodyFile) } else { '' }
+  $commits = (git log --format='- %s (%h)' "origin/$Base..HEAD") -join "`n"
+  $body = "## Commits in this PR`n`n$commits`n`n$template"
   if (Test-Gh) {
     & gh pr create --repo $slug --base $Base --head $branch --title $Title --body $body
     if ($LASTEXITCODE -ne 0) { throw 'gh pr create failed.' }
