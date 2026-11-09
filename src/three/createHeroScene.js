@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
-import { LAYOUT, MUG_SCALE, GLAZES, DEFAULT_PARAMS, HERO_STATE } from './sceneConfig.js';
+import { LAYOUT, MUG_SCALE, GLAZES, DEFAULT_PARAMS, HERO_STATE, isUserKey } from './sceneConfig.js';
 import { createDesk } from './objects/desk.js';
 import { createCuttingMat } from './objects/cuttingMat.js';
 import { createCoaster } from './objects/coaster.js';
@@ -16,6 +16,8 @@ import { createEmbers } from './effects/embers.js';
 import { createSmoke } from './effects/smoke.js';
 import { createLightTrails } from './effects/lightTrails.js';
 import { createVoxels } from './effects/voxels.js';
+import { createCoffeeSpill } from './effects/coffeeSpill.js';
+import { createCoffeePour } from './effects/coffeePour.js';
 
 const COASTER = { radius: 5, height: 0.62 };
 const { lerp, clamp, degToRad } = THREE.MathUtils;
@@ -63,6 +65,8 @@ export async function createHeroScene(container, { onReady } = {}) {
   const state = { ...HERO_STATE }; // target values (written by GSAP)
   const view = { ...HERO_STATE }; // smoothed values actually rendered
   const stateKeys = Object.keys(HERO_STATE);
+  // UI-driven values ("user*") already carry their own GSAP easing: no extra smoothing.
+  const userKey = Object.fromEntries(stateKeys.map((k) => [k, isUserKey(k)]));
 
   /* Renderer ---------------------------------------------------------- */
   // Post-processing owns AA (multisampling) and tone mapping (ACES effect),
@@ -79,6 +83,7 @@ export async function createHeroScene(container, { onReady } = {}) {
   renderer.setClearColor('#100904', 1);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.NoToneMapping;
+  renderer.localClippingEnabled = true; // coffee surface is clipped to the mug
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFShadowMap;
   renderer.domElement.setAttribute('aria-hidden', 'true');
@@ -215,6 +220,15 @@ export async function createHeroScene(container, { onReady } = {}) {
   const trails = createLightTrails({ center: STAGE });
   const voxels = createVoxels({ count: lowPower ? 40 : 70, center: STAGE });
   for (const fx of [embers, smoke, trails, voxels]) scene.add(fx.object);
+
+  /* Coffee spill (flip interaction): drops + splashes + puddle ---------- */
+  const spill = createCoffeeSpill({
+    maxDrops: lowPower ? 360 : 600,
+    maxSplash: lowPower ? 240 : 420,
+    floorY: -0.8,
+  });
+  scene.add(spill.object);
+  const coffee = createCoffeePour({ mug, spill, reducedMotion });
   const flipOffset = new THREE.Vector3();
   const flipEuler = new THREE.Euler();
   const glazeColors = GLAZES.map((c) => new THREE.Color(c));
@@ -294,7 +308,7 @@ export async function createHeroScene(container, { onReady } = {}) {
     // Ease rendered values toward the scroll targets (cinematic lag, and
     // fast scrolls never jump). rig.smoothing = 0 → exact (reduced motion).
     const k = (rig?.smoothing ?? 1) && !reducedMotion ? 1 - Math.exp(-dt * 6) : 1;
-    for (const key of stateKeys) view[key] += (state[key] - view[key]) * k;
+    for (const key of stateKeys) view[key] += (state[key] - view[key]) * (userKey[key] ? 1 : k);
     pointer.sx += (pointer.x - pointer.sx) * 0.05;
     pointer.sy += (pointer.y - pointer.sy) * 0.05;
 
@@ -334,6 +348,9 @@ export async function createHeroScene(container, { onReady } = {}) {
       flipEuler.set(mug.rotation.x, mug.rotation.y, 0);
       mug.position.add(flipOffset.applyEuler(flipEuler));
     }
+
+    // Coffee: slosh, drain, pour and splash, all driven by the flip angle.
+    coffee.update(dt, t, flipAngle);
 
     // Gamepad / headset: scale in, gentle float + idle turn.
     const bob = Math.sin(t * 0.9) * 0.18 * idle;
@@ -389,6 +406,7 @@ export async function createHeroScene(container, { onReady } = {}) {
 
   rig = {
     smoothing: 1,
+    coffee, // { burst(strength), refill(), level } — for flip timelines
     scene,
     camera,
     renderer,

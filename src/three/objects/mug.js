@@ -1,5 +1,6 @@
 import * as THREE from 'three';
-import { createGlazeTexture, createGlazeBumpTexture, createMugDecalTexture, createCoffeeTexture } from '../textures.js';
+import { createGlazeTexture, createGlazeBumpTexture, createMugDecalTexture } from '../textures.js';
+import { createCoffeeLiquid } from './coffeeLiquid.js';
 import { enableShadows } from './shapes.js';
 
 /**
@@ -7,7 +8,7 @@ import { enableShadows } from './shapes.js';
  * - body: one lathe profile (foot ring → outer wall → rounded lip → inner wall)
  * - handle: tube swept along a C-shaped spline, attached on +X
  * - printed decal on the +Z face (toward the camera)
- * - coffee surface with a crema ring
+ * - coffee: liquid body + turbulent sloshing surface (coffeeLiquid.js)
  * Origin = centre of the foot, resting on y = 0.
  */
 export function createMug({
@@ -106,25 +107,20 @@ export function createMug({
   decal.name = 'mugDecal';
   group.add(decal);
 
-  /* Coffee ------------------------------------------------------------ */
-  const coffee = new THREE.Mesh(
-    new THREE.CircleGeometry(R - wall - 0.005, 96),
-    new THREE.MeshPhysicalMaterial({
-      map: createCoffeeTexture(),
-      roughness: 0.06,
-      clearcoat: 1,
-      clearcoatRoughness: 0.03,
-    }),
-  );
-  coffee.rotation.x = -Math.PI / 2;
-  coffee.position.y = 0.4 + (H - 0.55) * fill;
-  coffee.name = 'mugCoffee';
-  coffee.receiveShadow = true;
-  group.add(coffee);
+  /* Coffee: liquid body + turbulent, sloshing surface ------------------ */
+  const liquid = createCoffeeLiquid({
+    innerRadius: R - wall - 0.005,
+    floorY: 0.4,
+    maxDepth: (H - 0.55) * fill,
+    rimY: H - 0.06,
+  });
+  group.add(liquid.group);
 
   enableShadows(body);
   enableShadows(handle);
-  // Exposed so the scene can tint the glaze (variants) at runtime.
+  // Exposed so the scene can tint the glaze and drive the coffee at runtime.
   group.userData.glaze = glaze;
+  group.userData.liquid = liquid;
+  group.userData.rim = { height: H, innerRadius: R - wall }; // mug-local units
   return group;
 }
