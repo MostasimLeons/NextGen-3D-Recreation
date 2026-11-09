@@ -327,3 +327,34 @@
     font-size: 14px;
   }
 }
+
+/* Outro: links into the deep pages (router plays the portal transition). */
+.outro__worlds {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 22px;
+  margin: 4px 0 2px;
+}
+.outro__worlds a {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  color: var(--c-cream);
+  text-decoration: none;
+  font-family: var(--f-display);
+  font-weight: 600;
+  font-size: clamp(15px, 1.2vw, 19px);
+  letter-spacing: -0.01em;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.3s var(--ease-out), color 0.3s var(--ease-out);
+}
+.outro__worlds a span {
+  font-family: var(--f-mono);
+  font-size: 10px;
+  color: var(--c-orange-glow);
+}
+.outro__worlds a:hover,
+.outro__worlds a:focus-visible {
+  color: #fff;
+  border-color: var(--c-orange-glow);
+}

@@ -370,6 +370,9 @@ export async function createHeroScene(container, { onReady } = {}) {
     if (h < 1) computeStoryCamera();
     camera.position.lerpVectors(storyPos, heroPos, h);
     lookTarget.lerpVectors(storyTarget, heroTarget, h);
+    // Page transition ("portal"): dive the camera toward what it looks at.
+    const portal = ease(clamp(view.userPortal, 0, 1));
+    if (portal > 0) camera.position.lerp(lookTarget, portal * 0.62);
     camera.lookAt(lookTarget);
 
     // Mug: on the coaster in the hero, scroll-driven transform in the story.
@@ -443,7 +446,7 @@ export async function createHeroScene(container, { onReady } = {}) {
     bgU.uGlow.value = view.glow;
     bgU.uGlowPos.value.set(view.gx, 1 - view.gy);
     bgU.uTint.value = view.tint;
-    embers.update(ft, clamp(view.embers, 0, 1.5));
+    embers.update(ft, clamp(view.embers + portal * 1.2, 0, 1.8));
     smoke.update(ft, clamp(view.smoke, 0, 1.5));
     trails.update(ft, clamp(view.trails, 0, 1.5));
     voxels.update(ft, clamp(view.voxels, 0, 1.2));
@@ -529,6 +532,10 @@ export async function createHeroScene(container, { onReady } = {}) {
     coffee, // { burst(strength), refill(), level } — for flip timelines
     orbit, // { anchors: Vector3[4] } — toolkit labels pin to these
     scrollProgress: 0, // written by useScrollStory; drives world travel
+    /** Jump the rendered values to the targets (page switches, no easing). */
+    snap() {
+      for (const k of stateKeys) view[k] = state[k];
+    },
     scene,
     camera,
     renderer,

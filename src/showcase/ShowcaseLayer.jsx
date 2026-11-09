@@ -17,7 +17,7 @@ const ShowcaseCanvas = lazy(loadCanvas);
  */
 const DEFAULT_WATCH = ['[data-story="projects"]', '[data-story="process"]'];
 
-export default function ShowcaseLayer({ watch = DEFAULT_WATCH }) {
+export default function ShowcaseLayer({ watch = DEFAULT_WATCH, routeKey = 'home' }) {
   const [active, setActive] = useState(false);
   const [mounted, setMounted] = useState(false);
 
@@ -33,8 +33,12 @@ export default function ShowcaseLayer({ watch = DEFAULT_WATCH }) {
   }, []);
 
   useEffect(() => {
+    // Re-queried per route: the showcase sections only exist on some pages.
     const els = watch.map((s) => document.querySelector(s)).filter(Boolean);
-    if (!els.length) return undefined;
+    if (!els.length) {
+      setActive(false); // nothing to show here: stay mounted, paused
+      return undefined;
+    }
     const visible = new Set();
     const io = new IntersectionObserver(
       (entries) => {
@@ -48,7 +52,7 @@ export default function ShowcaseLayer({ watch = DEFAULT_WATCH }) {
     );
     els.forEach((el) => io.observe(el));
     return () => io.disconnect();
-  }, [watch]);
+  }, [watch, routeKey]);
 
   if (!mounted) return null;
   return (
