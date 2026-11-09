@@ -16,18 +16,69 @@ export const LAYOUT = {
   ],
 };
 
+export const MUG_SCALE = 1.45;
+
+/** Glaze tints, multiplied over the speckled glaze texture: cream, sand, sage. */
+export const GLAZES = ['#ffffff', '#e8c39a', '#b9c7a2'];
+
 /**
- * Animatable scene parameters. The render loop reads these every frame,
- * so GSAP / ScrollTrigger can tween them directly in a later phase, e.g.
- *   gsap.to(rig.params, { zoom: 1.8, tilt: 40, scrollTrigger: { ... } })
+ * Hero-only tuning. Kept from Phase 2 as `rig.params`.
  */
 export const DEFAULT_PARAMS = {
-  tilt: 22, // camera pitch away from straight-down, degrees
-  zoom: 1, // >1 moves the camera closer
-  focusX: 0, // extra camera target offset (world units)
+  tilt: 22, // hero camera pitch away from straight-down, degrees
+  zoom: 1, // >1 moves the hero camera closer
+  focusX: 0, // extra hero camera target offset (world units)
   focusZ: 0,
-  mugSpin: 0, // extra mug rotation (radians) on top of idle sway
-  mugLift: 0, // lift mug off the coaster (world units)
-  idle: 1, // 0 disables idle sway (e.g. while scroll-scrubbing)
+  idle: 1, // 0 disables idle sway
   parallax: 1, // pointer influence
 };
+
+/**
+ * Scroll-animated scene state (`rig.state`). Every field is a plain number so
+ * GSAP can tween it; the render loop reads it each frame.
+ *
+ *   hero   1 = camera + mug use the responsive hero (desk) framing,
+ *          0 = they use the story values below (blended in between)
+ *   desk   opacity of desk, mat, coaster and props (hidden at 0)
+ *
+ * Story camera orbits a focus point f(x,y,z) at `dist`, `pitch`/`yaw` in degrees.
+ * Story mug: foot position m(x,y,z), Euler rotation r(x,y,z) in radians.
+ * Portrait screens: focus X moves to `pfx`, distance grows (× pdist), `pfy` shifts focus Y.
+ */
+export const HERO_STATE = {
+  hero: 1,
+  desk: 1,
+  fx: 0,
+  pfx: 0,
+  fy: 5.9,
+  fz: 0,
+  dist: 30,
+  pitch: 12,
+  yaw: 0,
+  pfy: 0,
+  pdist: 1,
+  mx: 0,
+  my: 2,
+  mz: 0,
+  rx: 0,
+  ry: 0.62,
+  rz: 0,
+  key: 3.2,
+  fill: 0.5,
+  hemi: 0.9,
+  rim: 60,
+  heat: 0,
+  env: 0.4,
+  glaze: 0,
+  // Stage actors sharing the centre (0, 5.9, 0): visibility as scale 0–1.
+  mugS: 1,
+  padS: 0,
+  vrS: 0,
+  arx: 0, // actor rotation (gamepad / headset), radians
+  ary: 0,
+  // Driven by UI interaction, never by the scroll timeline (prefix "user").
+  userFlip: 0,
+};
+
+/** Keys the scroll timeline must not touch (owned by UI interactions). */
+export const isUserKey = (k) => k.startsWith('user');

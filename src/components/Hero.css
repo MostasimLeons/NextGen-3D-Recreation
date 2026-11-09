@@ -4,25 +4,8 @@
   height: 100svh;
   min-height: 560px;
   overflow: hidden;
-  background: var(--c-bg-warm);
   isolation: isolate;
-}
-
-/* WebGL canvas ------------------------------------------------------ */
-.hero-canvas {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  opacity: 0;
-  transition: opacity 1.4s var(--ease-out);
-}
-.hero-canvas.is-ready {
-  opacity: 1;
-}
-.hero-canvas canvas {
-  display: block;
-  width: 100%;
-  height: 100%;
+  /* transparent: the 3D desk is rendered by the fixed SceneLayer behind */
 }
 
 /* Warm vignette + legibility shading over the scene */
@@ -40,10 +23,7 @@
 .hero > :not(.hero-canvas):not(.hero__shade) {
   z-index: 2;
 }
-/* Header hosts the mobile drawer, which must cover the other overlays */
-.hero > :not(.hero-canvas):not(.hero__shade).header {
-  z-index: 10;
-}
+
 
 /* Brand block ------------------------------------------------------- */
 .hero__brand {

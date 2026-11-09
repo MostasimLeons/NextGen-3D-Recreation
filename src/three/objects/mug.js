@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { createGlazeTexture, createMugDecalTexture, createCoffeeTexture } from '../textures.js';
+import { createGlazeTexture, createGlazeBumpTexture, createMugDecalTexture, createCoffeeTexture } from '../textures.js';
 import { enableShadows } from './shapes.js';
 
 /**
@@ -42,8 +42,12 @@ export function createMug({
     [0, 0.38],
   ].map(([x, y]) => new THREE.Vector2(x, y));
 
+  const bumpMap = createGlazeBumpTexture();
+  bumpMap.repeat.set(10, 5);
   const glaze = new THREE.MeshPhysicalMaterial({
     map: createGlazeTexture(),
+    bumpMap,
+    bumpScale: 0.35,
     color: '#ffffff',
     roughness: 0.28,
     metalness: 0,
@@ -120,5 +124,7 @@ export function createMug({
 
   enableShadows(body);
   enableShadows(handle);
+  // Exposed so the scene can tint the glaze (variants) at runtime.
+  group.userData.glaze = glaze;
   return group;
 }

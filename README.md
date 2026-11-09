@@ -30,7 +30,11 @@ src/
   App.jsx, main.jsx         App entry
   content.js                All page copy / branding (edit text here)
   components/               Hero overlay UI: Header, SideTab, InfoCard,
-                            VideoPreview, ScrollHint, HeroCanvas (+ CSS each)
+                            VideoPreview, ScrollHint, MobileMenu, SceneLayer,
+                            HeroCanvas (+ CSS each)
+    story/                  Scroll-story sections + story.css
+  story/                    storyConfig.js (sections + 3D keyframes),
+                            useScrollStory.js (GSAP / ScrollTrigger wiring)
   styles/                   tokens.css (colors, fonts, spacing), global.css
   three/
     createHeroScene.js      Renderer, lights, camera, render loop, cleanup
@@ -42,17 +46,28 @@ scripts/
   git-sync.ps1              Safe pull / commit / push helper (Windows PowerShell)
 ```
 
-### Animating the scene later (GSAP / ScrollTrigger)
+### Scroll story (GSAP + ScrollTrigger)
 
-`createHeroScene` resolves to `{ dispose, rig }`. `rig.params` (camera `tilt`, `zoom`,
-`focusX/Z`, `mugSpin`, `mugLift`, `idle`, `parallax`) is read every frame, so a
-timeline can tween it directly:
+NEXT GEN is presented as a multidisciplinary creative technology team (game development,
+3D art & VR, creative design); the coffee mug is the hero visual, not a product.
+After the hero, the page scrolls through pinned sections that mirror oryzo.ai one-to-one:
+**statement → "powered by play" → "it's playable" → capabilities (gamepad / VR headset /
+handle-curve blueprint) → interactive flip toy → material macro → toolkit → how-we-work
+cards → projects (categories, case studies coming soon) → outro**. Oryzo's testimonials
+section is intentionally omitted (no invented reviews or clients). The full mapping is
+documented at the top of `src/story/storyConfig.js`.
 
-```js
-gsap.to(rig.params, { zoom: 1.8, tilt: 40, scrollTrigger: { trigger: '#intro', scrub: true } });
-```
+- `src/story/storyConfig.js` defines each section's length (viewport heights) and its
+  3D keyframes (camera orbit, mug transform, lights, glaze, background glow).
+- `src/story/useScrollStory.js` builds **one master GSAP timeline** (positions in scroll
+  pixels) that tweens `rig.state`, plus per-section text reveals. Rebuilt on real resizes.
+- `src/three/createHeroScene.js` renders one persistent scene in a fixed layer and eases
+  its displayed values toward `rig.state` every frame (smooth, never conflicting).
+- Sections pin with CSS `position: sticky`; React never re-renders on scroll.
+- `prefers-reduced-motion`: no scrubbed motion; the scene cuts between section states.
 
-`HeroCanvas` exposes the rig through its `onSceneReady(rig)` prop.
+To retune a section, edit its keyframe in `storyConfig.js`. Fields are documented in
+`src/three/sceneConfig.js` (`HERO_STATE`).
 
 ## Git workflow
 
