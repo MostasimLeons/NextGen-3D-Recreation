@@ -9,8 +9,8 @@ import { createPencil } from './objects/pencil.js';
 import { createUtilityKnife } from './objects/utilityKnife.js';
 import { createPaperClip } from './objects/paperClip.js';
 
-const COASTER = { radius: 4.5, height: 0.6 };
-const MUG_SCALE = 1.3;
+const COASTER = { radius: 5, height: 0.62 };
+const MUG_SCALE = 1.45;
 
 /**
  * Camera framing for a given viewport aspect. Wide screens show the whole
@@ -19,11 +19,11 @@ const MUG_SCALE = 1.3;
 function framingFor(aspect) {
   const t = THREE.MathUtils.clamp((aspect - 0.5) / (1.4 - 0.5), 0, 1);
   const e = t * t * (3 - 2 * t); // smoothstep
-  const width = Math.max(THREE.MathUtils.lerp(14, 38, e), aspect * 22 * e);
+  const width = Math.max(THREE.MathUtils.lerp(16.5, 38, e), aspect * 22 * e);
   const target = new THREE.Vector3(
-    THREE.MathUtils.lerp(LAYOUT.coaster.x + 0.6, 0, e),
+    THREE.MathUtils.lerp(LAYOUT.coaster.x + 0.8, 0, e),
     0,
-    THREE.MathUtils.lerp(LAYOUT.coaster.z - 2.4, 0, e),
+    THREE.MathUtils.lerp(LAYOUT.coaster.z - 2.6, 0, e),
   );
   return { width, target };
 }
@@ -67,7 +67,7 @@ export async function createHeroScene(container, { onReady } = {}) {
 
   /* Scene ------------------------------------------------------------- */
   const scene = new THREE.Scene();
-  scene.background = new THREE.Color('#24140a');
+  scene.background = new THREE.Color('#100904');
 
   const pmrem = new THREE.PMREMGenerator(renderer);
   const envTex = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
@@ -80,7 +80,8 @@ export async function createHeroScene(container, { onReady } = {}) {
   const key = new THREE.DirectionalLight('#ffd6a8', 3.2);
   key.position.set(-16, 25, -12);
   key.castShadow = true;
-  key.shadow.mapSize.set(4096, 4096);
+  const bigShadow = Math.min(window.innerWidth, window.innerHeight) > 700;
+  key.shadow.mapSize.set(bigShadow ? 4096 : 2048, bigShadow ? 4096 : 2048);
   Object.assign(key.shadow.camera, { left: -34, right: 34, top: 26, bottom: -26, near: 1, far: 90 });
   key.shadow.bias = -0.0004;
   key.shadow.normalBias = 0.02;
@@ -112,7 +113,7 @@ export async function createHeroScene(container, { onReady } = {}) {
 
   // The mug sits in the coaster's recessed floor.
   const mugBaseY = matTop + COASTER.height * 0.55;
-  const mug = createMug({ mark: 'NEXT GEN' });
+  const mug = createMug({ mark: 'NEXT GEN', decalAngle: LAYOUT.mug.decalAngle });
   mug.position.set(LAYOUT.coaster.x, mugBaseY, LAYOUT.coaster.z);
   mug.rotation.y = LAYOUT.mug.rotY;
   mug.scale.setScalar(MUG_SCALE);
@@ -198,7 +199,7 @@ export async function createHeroScene(container, { onReady } = {}) {
     const idle = reducedMotion ? 0 : params.idle;
     // Slow turntable sway + mouse-driven turn; handle swings into view.
     mug.rotation.y =
-      LAYOUT.mug.rotY + params.mugSpin + Math.sin(t * 0.35) * 0.22 * idle + pointer.sx * 0.45 * params.parallax;
+      LAYOUT.mug.rotY + params.mugSpin + Math.sin(t * 0.35) * 0.2 * idle + pointer.sx * 0.3 * params.parallax;
     mug.position.y = mugBaseY + params.mugLift;
     mug.rotation.x = pointer.sy * 0.025 * params.parallax;
 

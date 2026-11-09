@@ -1,14 +1,16 @@
 :root {
-  /* Palette */
-  --c-bg: #1a0f08;
-  --c-bg-warm: #24140a;
+  /* Palette (sampled from the reference art direction) */
+  --c-bg: #100904; /* warm near-black */
+  --c-bg-warm: #1c0f07; /* dark brown supporting tone */
+  --c-brown: #2a170b;
   --c-cream: #ffedd7;
   --c-cream-dim: rgba(255, 237, 215, 0.62);
-  --c-ink: #160c05;
-  --c-orange: #f0762a;
-  --c-orange-deep: #dc5000;
-  --c-glass: rgba(255, 237, 215, 0.13);
-  --c-glass-border: rgba(255, 237, 215, 0.14);
+  --c-ink: #100904;
+  --c-orange: #dc5000; /* restrained burnt-orange accent */
+  --c-orange-glow: #f0762a; /* lighter tint, only for glows */
+  --c-glass: rgba(42, 23, 11, 0.32);
+  --c-glass-border: rgba(255, 237, 215, 0.12);
+  --c-shade: 16, 9, 4; /* --c-bg as RGB, for rgba() overlays */
 
   /* Type */
   --f-display: 'Outfit', 'Hanken Grotesk', system-ui, sans-serif;
@@ -21,4 +23,5 @@
   --col-right: 64.4vw; /* left edge of the right-hand text column */
 
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
 }
