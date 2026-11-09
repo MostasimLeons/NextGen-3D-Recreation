@@ -1,25 +1,26 @@
 {
-    "name":  "oryzo-landing",
-    "private":  true,
-    "version":  "0.1.0",
-    "type":  "module",
-    "scripts":  {
-                    "dev":  "vite",
-                    "build":  "vite build",
-                    "preview":  "vite preview",
-                    "git:status":  "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/git-sync.ps1 status",
-                    "git:pull":  "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/git-sync.ps1 pull",
-                    "git:commit":  "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/git-sync.ps1 commit",
-                    "git:push":  "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/git-sync.ps1 push",
-                    "git:sync":  "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/git-sync.ps1 sync"
-                },
-    "dependencies":  {
-                         "react":  "^19.3.1",
-                         "react-dom":  "^19.3.1",
-                         "three":  "^0.187.0"
-                     },
-    "devDependencies":  {
-                            "@vitejs/plugin-react":  "^6.2.1",
-                            "vite":  "^8.3.6"
-                        }
+  "name": "oryzo-landing",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "git:status": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/git-sync.ps1 status",
+    "git:pull": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/git-sync.ps1 pull",
+    "git:commit": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/git-sync.ps1 commit",
+    "git:push": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/git-sync.ps1 push",
+    "git:sync": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/git-sync.ps1 sync",
+    "git:pr": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/git-sync.ps1 pr"
+  },
+  "dependencies": {
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "three": "^0.187.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^6.2.1",
+    "vite": "^8.3.6"
+  }
 }

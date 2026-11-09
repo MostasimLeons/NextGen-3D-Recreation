@@ -18,16 +18,30 @@
   .\scripts\git-sync.ps1 push
   .\scripts\git-sync.ps1 sync -Message "Tweak hero lighting"   # pull + commit + push
   .\scripts\git-sync.ps1 remote -Url https://github.com/<you>/<repo>.git
+  .\scripts\git-sync.ps1 pr -Title "Landing page"     # open a PR: current branch -> main
+  .\scripts\git-sync.ps1 invite -User someone          # invite a collaborator (write access)
+
+  pr / invite use the GitHub CLI if installed, otherwise the sign-in Git
+  Credential Manager already holds for github.com. The token is only kept in
+  memory for the API call; it is never printed or written to disk.
+  -Yes skips the y/N prompt (for use after you have reviewed the change).
 #>
 [CmdletBinding()]
 param(
   [Parameter(Position = 0)]
-  [ValidateSet('status', 'pull', 'commit', 'push', 'sync', 'remote')]
+  [ValidateSet('status', 'pull', 'commit', 'push', 'sync', 'remote', 'pr', 'invite')]
   [string]$Action = 'status',
 
   [string]$Message,
 
-  [string]$Url
+  [string]$Url,
+
+  [string]$Title,        # pr: pull request title (default: last commit subject)
+  [string]$Base = 'main', # pr: target branch
+  [string]$User,         # invite: GitHub username
+  [ValidateSet('pull', 'triage', 'push', 'maintain', 'admin')]
+  [string]$Permission = 'push', # invite: 'push' = write access
+  [switch]$Yes           # skip confirmation prompts
 )
 
 $ErrorActionPreference = 'Stop'
@@ -44,6 +58,7 @@ function Invoke-Git {
 }
 
 function Confirm-Action($question) {
+  if ($Yes) { Write-Host "$question [auto-yes]"; return $true }
   $answer = Read-Host "$question [y/N]"
   return ($answer -match '^(y|yes)$')
 }
@@ -175,6 +190,81 @@ function Set-Origin {
   Write-Host 'origin added.' -ForegroundColor Green
 }
 
+# --- GitHub API (PR / collaborator) -----------------------------------
+
+function Get-RepoSlug {
+  if (-not (Test-Origin)) { throw 'No origin remote configured.' }
+  $u = (git remote get-url origin).Trim()
+  if ($u -notmatch 'github\.com[:/]([^/]+)/([^/]+?)(\.git)?$') { throw "origin is not a GitHub URL: $u" }
+  return "$($Matches[1])/$($Matches[2])"
+}
+
+function Get-GitHubToken {
+  # Ask Git Credential Manager for the github.com sign-in it already stores.
+  # If none is stored, GCM shows its own sign-in window (browser / device code).
+  $req = "protocol=https`nhost=github.com`n`n"
+  $out = $req | git credential fill 2>$null
+  $line = $out | Where-Object { $_ -like 'password=*' } | Select-Object -First 1
+  if (-not $line) { throw 'No GitHub sign-in available. Run a git push once to sign in, then retry.' }
+  return $line.Substring(9)
+}
+
+function Invoke-GitHub($Method, $Path, $Body) {
+  [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+  $headers = @{
+    Authorization          = "Bearer $(Get-GitHubToken)"
+    Accept                 = 'application/vnd.github+json'
+    'X-GitHub-Api-Version' = '2022-11-28'
+    'User-Agent'           = 'git-sync-script'
+  }
+  $params = @{ Method = $Method; Uri = "https://api.github.com$Path"; Headers = $headers }
+  if ($Body) { $params.Body = ($Body | ConvertTo-Json -Depth 5); $params.ContentType = 'application/json' }
+  return Invoke-RestMethod @params
+}
+
+function Test-Gh { return [bool](Get-Command gh -ErrorAction SilentlyContinue) }
+
+function New-PullRequest {
+  $branch = Get-Branch
+  if ($branch -eq $Base) { throw "You are on '$Base'. Switch to your feature branch first." }
+  if (-not (Test-Upstream)) { throw "Push '$branch' first: .\scripts\git-sync.ps1 push" }
+  $slug = Get-RepoSlug
+  $owner = $slug.Split('/')[0]
+  if ([string]::IsNullOrWhiteSpace($Title)) { $script:Title = (git log -1 --format=%s).Trim() }
+
+  $existing = @(Invoke-GitHub GET "/repos/$slug/pulls?head=$($owner):$branch&base=$Base&state=open")
+  if ($existing.Count -gt 0 -and $existing[0].html_url) {
+    Write-Host "A pull request already exists: $($existing[0].html_url)" -ForegroundColor Green
+    return
+  }
+
+  Write-Step "Commits that will be in the PR ($branch -> $Base)"
+  git --no-pager log --oneline "origin/$Base..HEAD"
+  if (-not (Confirm-Action "Open PR '$Title' on $slug?")) { Write-Warn 'Cancelled.'; return }
+
+  $bodyFile = Join-Path (Get-Location) '.github/pull_request_template.md'
+  $body = if (Test-Path $bodyFile) { Get-Content $bodyFile -Raw } else { '' }
+  if (Test-Gh) {
+    & gh pr create --repo $slug --base $Base --head $branch --title $Title --body $body
+    if ($LASTEXITCODE -ne 0) { throw 'gh pr create failed.' }
+    return
+  }
+  $pr = Invoke-GitHub POST "/repos/$slug/pulls" @{ title = $Title; head = $branch; base = $Base; body = $body }
+  Write-Host "Pull request #$($pr.number) opened: $($pr.html_url)" -ForegroundColor Green
+}
+
+function Add-Collaborator {
+  if ([string]::IsNullOrWhiteSpace($User)) { throw 'Pass the GitHub username: -User <name>' }
+  $slug = Get-RepoSlug
+  if (-not (Confirm-Action "Invite '$User' to $slug with '$Permission' access?")) { Write-Warn 'Cancelled.'; return }
+  $res = Invoke-GitHub PUT "/repos/$slug/collaborators/$User" @{ permission = $Permission }
+  if ($res -and $res.html_url) {
+    Write-Host "Invitation sent to $User. They must accept it at https://github.com/$slug/invitations" -ForegroundColor Green
+  } else {
+    Write-Host "$User already has access to $slug." -ForegroundColor Green
+  }
+}
+
 # --- Main ---------------------------------------------------------------
 
 try {
@@ -185,6 +275,8 @@ try {
     'commit' { [void](Invoke-Commit) }
     'push'   { Invoke-Push }
     'remote' { Set-Origin }
+    'pr'     { New-PullRequest }
+    'invite' { Add-Collaborator }
     'sync' {
       # Pull first (fast-forward), then commit on top, then push.
       Invoke-Pull
