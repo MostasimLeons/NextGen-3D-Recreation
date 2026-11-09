@@ -348,7 +348,13 @@ export async function createHeroScene(container, { onReady } = {}) {
   let raf = 0;
   let first = true;
 
+  let paused = false;
+
   function tick() {
+    if (paused) {
+      raf = 0; // stopped; setPaused(false) restarts the loop
+      return;
+    }
     timer.update();
     const t = timer.getElapsed();
     const dt = Math.min(timer.getDelta(), 0.1);
@@ -532,6 +538,14 @@ export async function createHeroScene(container, { onReady } = {}) {
     coffee, // { burst(strength), refill(), level } — for flip timelines
     orbit, // { anchors: Vector3[4] } — toolkit labels pin to these
     scrollProgress: 0, // written by useScrollStory; drives world travel
+    /** Stop / restart rendering (e.g. while the full-screen presentation plays). */
+    setPaused(next) {
+      paused = Boolean(next);
+      if (!paused && !raf) {
+        timer.update(); // swallow the paused time so dt stays small
+        raf = requestAnimationFrame(tick);
+      }
+    },
     /** Jump the rendered values to the targets (page switches, no easing). */
     snap() {
       for (const k of stateKeys) view[k] = state[k];

@@ -21,7 +21,7 @@ export const content = {
     title: ['Games,', '3D, VR', '& design by', 'NEXT GEN.'],
     body: 'One team, four disciplines, a lot of coffee.',
   },
-  video: { label: 'Soon', caption: 'NEXT GEN showreel — coming soon' },
+  video: { label: 'Play', caption: 'Play the NEXT GEN presentation' },
   menuFoot: { label: 'New projects', cta: 'Get in touch', href: '#contact' },
   scrollHint: 'Scroll to continue',
 
