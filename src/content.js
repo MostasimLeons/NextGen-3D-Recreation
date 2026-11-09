@@ -91,10 +91,51 @@ export const content = {
       eyebrow: 'How we work',
       title: 'Runs on the edge of play',
       tech: ['Unity', 'Unreal Engine', 'Blender', 'Three.js', 'WebGL', 'VR'],
-      tiles: [
-        { id: 'lattice', label: 'Voxel wave', meta: 'Engine test', after: 0 },
-        { id: 'shader', label: 'Fire shader', meta: 'GLSL · WebGL', after: 2 },
-        { id: 'turntable', label: 'Mug turntable', meta: 'Asset review', after: 4 },
+      // Phase 5: one scroll chapter per technology (names only, no logos).
+      // Descriptions state what the tool is used for — no claims of shipped work.
+      chapters: [
+        {
+          id: 'unity',
+          name: 'Unity',
+          role: 'Game engine · Interactive',
+          line: 'Component by component: gameplay systems, tools and builds for every platform we target.',
+          preview: { id: 'lattice', label: 'Voxel wave', meta: 'Engine test' },
+        },
+        {
+          id: 'unreal',
+          name: 'Unreal Engine',
+          role: 'Game engine · Cinematic',
+          line: 'Real-time worlds with film-grade light — environments you can walk through, not just watch.',
+          preview: { id: 'orbit', label: 'Level orbit', meta: 'Camera study' },
+        },
+        {
+          id: 'blender',
+          name: 'Blender',
+          role: '3D art · Modeling & animation',
+          line: 'From the first box-out to a clean, rigged, game-ready asset.',
+          preview: { id: 'wire', label: 'Wireframe', meta: 'Topology pass' },
+        },
+        {
+          id: 'three',
+          name: 'Three.js',
+          role: 'Web 3D · Scene graph',
+          line: 'Interactive 3D in the browser — this whole site is the demo.',
+          preview: { id: 'morph', label: 'Shape morph', meta: 'Motion' },
+        },
+        {
+          id: 'webgl',
+          name: 'WebGL',
+          role: 'GPU · Custom shaders',
+          line: 'Hand-written GLSL for fire, smoke, glaze and everything that has to glow.',
+          preview: { id: 'shader', label: 'Fire shader', meta: 'GLSL' },
+        },
+        {
+          id: 'vr',
+          name: 'VR',
+          role: 'Immersive · Spatial',
+          line: 'Spaces designed around how people actually move, look and reach.',
+          preview: { id: 'vr', label: 'VR headset', meta: 'Hardware study' },
+        },
       ],
       cards: [
         { kicker: 'Always on', title: 'Runs on coffee', body: 'Fuel: espresso. Uptime: whenever the idea is good.', meta: 'Power draw (est.): 2 cups / hour' },

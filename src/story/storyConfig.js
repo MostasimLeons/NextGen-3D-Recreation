@@ -12,7 +12,7 @@
  *   grip (macro)          →  material   macro detail
  *   sustainability        →  toolkit    real-time first + tool grid
  *   testimonies           →  (omitted: would need invented reviews)
- *   social content        →  process    horizontal "how we work" cards
+ *   social content        →  process    6 immersive technology chapters (R3F)
  *   choose your own       →  projects   interactive category showcase (R3F)
  *   footer                →  outro
  *
@@ -163,17 +163,22 @@ export const STORY = [
   {
     id: 'process',
     label: 'Edge of play',
-    length: 3.6,
+    // Six technology chapters (Unity → VR), one step each; the R3F tech stage
+    // takes the screen, the main scene supplies glow, smoke and embers.
+    length: 7.6,
     steps: [
       {
-        // Live preview tiles carry the visuals here; the stage stays clear.
         mugS: 0, padS: 0, vrS: 0, arx: 0.15, ary: -0.9,
-        fx: 0, fy: 7.8, dist: 34, pitch: 8, pfy: 2,
-        key: 2.4, fill: 0.7, hemi: 0.5, rim: 70,
-        bg: { glow: 0.3, x: 50, y: 40, tint: 0.4 },
-        embers: 0.8, smoke: 0.9, trails: 0.9, voxels: 0.5,
+        fx: 0, pfx: 0, fy: 7.8, dist: 34, pitch: 8, pfy: 2,
+        key: 2.4, fill: 0.7, hemi: 0.5, rim: 70, heat: 0,
+        bg: { glow: 0.42, x: 62, y: 46, tint: 0.45 },
+        embers: 0.9, smoke: 0.9, trails: 0.7, voxels: 0.6,
       },
-      { ary: 0.9, arx: 0.05, bg: { glow: 0.36, x: 50, y: 42 } },
+      { bg: { glow: 0.5, x: 40, y: 40, tint: 0.6 }, embers: 1.1, smoke: 1.1, trails: 0.9, voxels: 0.3 },
+      { bg: { glow: 0.36, x: 58, y: 52, tint: 0.35 }, embers: 0.6, smoke: 0.7, trails: 0.5, voxels: 0.5 },
+      { bg: { glow: 0.44, x: 50, y: 44, tint: 0.4 }, embers: 0.8, smoke: 0.6, trails: 1.2, voxels: 0.4 },
+      { bg: { glow: 0.62, x: 50, y: 62, tint: 0.7 }, embers: 1.3, smoke: 1.0, trails: 0.8, voxels: 0.2 },
+      { bg: { glow: 0.4, x: 55, y: 45, tint: 0.4 }, embers: 0.8, smoke: 0.8, trails: 1.0, voxels: 0.8 },
     ],
   },
   {

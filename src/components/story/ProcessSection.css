@@ -1,0 +1,228 @@
+/* ==================================================================== */
+/* "Runs on the edge of play" — immersive technology chapters (Phase 5)  */
+/* ==================================================================== */
+
+.tech {
+  inset: 0;
+}
+.tech > * {
+  position: absolute;
+}
+
+/* Full-bleed stage; the 3D draws through a drei View into the shared canvas */
+.tech-stage {
+  inset: 0;
+  pointer-events: none;
+}
+.tech-stage__view {
+  position: absolute;
+  inset: 0;
+}
+
+.tech__head {
+  left: var(--gutter);
+  top: clamp(80px, 12vh, 130px);
+}
+
+/* Progress rail ------------------------------------------------------- */
+.tech-rail {
+  right: var(--gutter);
+  top: clamp(84px, 13vh, 140px);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-family: var(--f-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.tech-rail li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: rgba(255, 237, 215, 0.32);
+  transition: color 0.4s var(--ease-out);
+}
+.tech-rail li::after {
+  content: '';
+  width: 18px;
+  height: 1px;
+  background: currentColor;
+  transform-origin: right;
+  transition:
+    width 0.5s var(--ease-out),
+    background 0.4s;
+}
+.tech-rail li.is-done {
+  color: rgba(255, 237, 215, 0.6);
+}
+.tech-rail li.is-active {
+  color: var(--c-cream);
+}
+.tech-rail li.is-active::after {
+  width: 44px;
+  background: var(--c-orange-glow);
+  box-shadow: 0 0 10px var(--c-orange-glow);
+}
+.tech-rail__index {
+  color: var(--c-orange-glow);
+}
+
+/* Chapter copy + giant word ------------------------------------------ */
+.tech-copy {
+  left: var(--gutter);
+  right: var(--gutter);
+  bottom: clamp(40px, 9vh, 96px);
+  pointer-events: none;
+}
+.tech-copy__meta {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: baseline;
+  gap: 4px 16px;
+  max-width: 560px;
+  margin-bottom: clamp(6px, 1vh, 14px);
+}
+.tech-copy__index {
+  font-family: var(--f-mono);
+  font-size: clamp(18px, 1.7vw, 28px);
+  color: var(--c-orange-glow);
+}
+.tech-copy__index em {
+  font-style: normal;
+  font-size: 0.5em;
+  color: var(--c-cream-dim);
+}
+.tech-copy__role {
+  font-family: var(--f-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--c-cream);
+}
+.tech-copy__line {
+  grid-column: 1 / -1;
+  margin: 0;
+  font-size: clamp(14px, 1.15vw, 19px);
+  line-height: 1.4;
+  color: rgba(255, 237, 215, 0.84);
+  text-shadow: 0 2px 20px rgba(var(--c-shade), 0.7);
+}
+
+.tech-word {
+  position: relative;
+  display: inline-block; /* width = the word, so --fill maps to its letters */
+  margin: 0;
+  font-family: var(--f-display);
+  font-weight: 600;
+  font-size: clamp(64px, 12.5vw, 240px);
+  line-height: 0.86;
+  letter-spacing: -0.05em;
+  white-space: nowrap;
+}
+.tech-word__outline {
+  display: inline-flex;
+  overflow: hidden;
+  padding-bottom: 0.06em;
+  color: transparent;
+  -webkit-text-stroke: 1.2px rgba(255, 237, 215, 0.55);
+}
+.tech-word__char {
+  display: inline-block;
+  will-change: transform, opacity;
+}
+/* Fill: an orange→cream gradient revealed left-to-right by --fill (0–1),
+   which ScrollTrigger sets from the chapter's scroll progress. */
+.tech-word__fill {
+  position: absolute;
+  inset: 0;
+  padding-bottom: 0.06em;
+  background: linear-gradient(90deg, #dc5000 0%, #ff7a2a 45%, #ffedd7 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  clip-path: inset(0 calc((1 - var(--fill, 0)) * 100%) 0 0);
+  filter: drop-shadow(0 0 28px rgba(255, 106, 31, 0.45));
+}
+
+/* Live preview -------------------------------------------------------- */
+.tech-preview {
+  right: var(--gutter);
+  bottom: clamp(40px, 9vh, 96px);
+  width: clamp(240px, 22vw, 380px);
+  --tile-ratio: 16 / 10;
+  pointer-events: none;
+}
+
+/* Kinetic principle caption (the former "how we work" cards) ----------- */
+.tech-caption {
+  left: 50%;
+  bottom: clamp(10px, 2.4vh, 22px);
+  translate: -50% 0;
+  display: flex;
+  gap: 12px;
+  align-items: baseline;
+  margin: 0;
+  white-space: nowrap;
+  font-family: var(--f-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--c-cream-dim);
+  animation: tech-caption-in 0.8s var(--ease-out);
+}
+.tech-caption__kicker {
+  color: var(--c-orange-glow);
+}
+.tech-caption__title {
+  color: var(--c-cream);
+}
+@keyframes tech-caption-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+    letter-spacing: 0.2em;
+  }
+}
+
+/* Tablet --------------------------------------------------------------- */
+@media (max-width: 1024px) {
+  .tech-caption__body {
+    display: none;
+  }
+  .tech-preview {
+    width: 30vw;
+  }
+}
+
+/* Mobile ---------------------------------------------------------------- */
+@media (max-width: 640px) {
+  .tech__head {
+    top: 64px;
+  }
+  .tech-rail {
+    display: none; /* index lives in the chapter meta */
+  }
+  .tech-word {
+    font-size: 17vw;
+  }
+  .tech-copy {
+    bottom: 54px;
+  }
+  .tech-preview {
+    top: calc(64px + 3.4em + 2 * 8.4vw); /* below the two-line section title */
+    bottom: auto;
+    width: 42vw;
+  }
+  .tech-caption {
+    left: var(--gutter);
+    right: var(--gutter);
+    translate: none;
+    justify-content: center;
+    font-size: 10px;
+  }
+}

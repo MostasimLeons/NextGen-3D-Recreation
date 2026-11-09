@@ -2,6 +2,8 @@ import { useLayoutEffect } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { STORY } from './storyConfig.js';
+import { techProgress, TECH_CHAPTER_EVENT } from './techChapter.js';
+import { content } from '../content.js';
 import { HERO_STATE, isUserKey } from '../three/sceneConfig.js';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -172,44 +174,35 @@ export function useScrollStory(rig, rootRef) {
         toggleClass: { targets: document.documentElement, className: 'is-past-hero' },
       });
 
-      if (reduced) return; // text stays static & visible
-
-      /* Tech marquee: drifts right-to-left slower, opposite feel to the track */
-      const marquee = root.querySelector('[data-marquee]');
-      if (marquee && sectionEl('process')) {
-        const len = STORY.find((s) => s.id === 'process').length;
-        gsap.fromTo(
-          marquee,
-          { xPercent: -50 },
-          {
-            xPercent: 0,
-            ease: 'none',
-            scrollTrigger: { trigger: sectionEl('process'), start: pos(-0.8), end: pos(len), scrub: true },
-          },
-        );
-      }
-
-      /* "How we work": horizontal card track scrubbed across the pin ------ */
-      const track = root.querySelector('[data-track]');
+      /* "Runs on the edge of play": six technology chapters -------------- */
+      // One trigger over the pinned range: writes in-chapter progress (camera
+      // dolly + word fill) every update, and fires TECH_CHAPTER_EVENT only
+      // when the chapter index changes (React re-renders 6× per pass).
       const processEl = sectionEl('process');
-      if (track && processEl) {
+      const techRoot = processEl?.querySelector('.tech');
+      if (processEl && techRoot) {
         const len = STORY.find((s) => s.id === 'process').length;
-        gsap.fromTo(
-          track,
-          { x: () => window.innerWidth * 0.55 },
-          {
-            x: () => -(track.scrollWidth - window.innerWidth * 0.55),
-            ease: 'none',
-            scrollTrigger: {
-              trigger: processEl,
-              start: pos(-0.3),
-              end: pos(len - 1),
-              scrub: true,
-              invalidateOnRefresh: true,
-            },
-          },
-        );
+        const n = content.story.process.chapters.length;
+        const apply = (progress) => {
+          const p = Math.min(progress * n, n - 0.0001);
+          const i = Math.floor(p);
+          techProgress.current = p - i;
+          techRoot.style.setProperty('--fill', reduced ? '1' : (p - i).toFixed(3));
+          if (i !== techProgress.index) {
+            techProgress.index = i;
+            window.dispatchEvent(new CustomEvent(TECH_CHAPTER_EVENT, { detail: { index: i } }));
+          }
+        };
+        ScrollTrigger.create({
+          trigger: processEl,
+          start: 'top top',
+          end: () => `+=${Math.round((len - 1) * vh())}`,
+          onUpdate: (self) => apply(self.progress),
+          onRefresh: (self) => apply(self.progress),
+        });
       }
+
+      if (reduced) return; // text stays static & visible
 
       /* Typography ------------------------------------------------------- */
       for (const section of STORY) {
