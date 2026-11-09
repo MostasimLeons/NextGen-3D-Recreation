@@ -7,7 +7,7 @@ import './VideoPreview.css';
  */
 export default function VideoPreview({ brand, label, caption }) {
   return (
-    <button type="button" className="video-preview" aria-label={caption}>
+    <button type="button" className="video-preview" aria-label={caption} aria-disabled="true" title={caption}>
       <span className="video-preview__glow" aria-hidden="true" />
       <span className="video-preview__frame" aria-hidden="true">
         <span className="video-preview__still">

@@ -6,3 +6,7 @@
   z-index: 2;
   pointer-events: none;
 }
+/* Paused away from the showcases: keep the context, hide the last frame. */
+.showcase-layer.is-paused {
+  visibility: hidden;
+}

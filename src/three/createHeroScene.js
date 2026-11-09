@@ -440,10 +440,49 @@ export async function createHeroScene(container, { onReady } = {}) {
 
     if (first) {
       first = false;
+      warmUp(); // before the loader lifts, so any compile stall is hidden
       onReady?.();
     }
     raf = requestAnimationFrame(tick);
   }
+  /**
+   * Compile every material once, including effects that are still hidden
+   * (world, steam, orbit, actors). Without this their shaders compile the
+   * first time they become visible, which froze scrolling for ~250 ms on
+   * entering the statement section.
+   */
+  function warmUp() {
+    const hidden = [];
+    scene.traverse((o) => {
+      if (!o.visible) {
+        hidden.push(o);
+        o.visible = true;
+      }
+    });
+    // Compile against the composer's input buffer so the program keys
+    // (linear output, no tone mapping) match the real render pass.
+    const prevTarget = renderer.getRenderTarget();
+    try {
+      renderer.setRenderTarget(post.composer.inputBuffer ?? null);
+      renderer.compile(scene, camera);
+      // The desk fade switches its materials to transparent, which is a
+      // different program — compile that variant too, then restore.
+      for (const m of deskMaterials) {
+        m.transparent = true;
+        m.needsUpdate = true;
+      }
+      renderer.compile(deskGroup, camera, scene);
+      for (const m of deskMaterials) {
+        m.transparent = false;
+        m.needsUpdate = true;
+      }
+    } finally {
+      renderer.setRenderTarget(prevTarget);
+      // visibility is re-derived from the view state every frame anyway
+      hidden.forEach((o) => (o.visible = false));
+    }
+  }
+
   tick();
 
   rig = {

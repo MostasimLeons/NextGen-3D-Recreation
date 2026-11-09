@@ -52,18 +52,29 @@ export function createVoxels({ count = 70, center = new THREE.Vector3(0, 5.9, 0)
     update(time, intensity) {
       group.visible = intensity > 0.005;
       if (!group.visible) return;
+      const spinY = time * 0.02;
       for (let i = 0; i < count; i++) {
         const it = items[i];
         p.copy(it.base);
         p.y += Math.sin(time * 0.35 + it.phase) * 0.8;
+        // Shell spin (was group.rotation) applied here so the clearance test
+        // below sees the cube's real position relative to the stage.
+        const ca = Math.cos(spinY);
+        const sa = Math.sin(spinY);
+        const x = p.x * ca + p.z * sa;
+        p.z = -p.x * sa + p.z * ca;
+        p.x = x;
+        // Front of the stage (towards the camera): shrink to nothing near the
+        // centre line so no cube ever covers the mug.
+        const front = THREE.MathUtils.smoothstep(p.z, -3, 1);
+        const clear = 1 - front * (1 - THREE.MathUtils.smoothstep(Math.abs(p.x), 6, 11));
         e.set(it.spin.x * time, it.spin.y * time, it.spin.z * time);
         q.setFromEuler(e);
-        s.setScalar(it.size * intensity);
+        s.setScalar(it.size * intensity * Math.max(clear, 0.001));
         m.compose(p, q, s);
         mesh.setMatrixAt(i, m);
       }
       mesh.instanceMatrix.needsUpdate = true;
-      group.rotation.y = time * 0.02;
     },
   };
 }

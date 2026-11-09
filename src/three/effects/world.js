@@ -132,7 +132,9 @@ export function createWorld() {
   const shardMat = new THREE.MeshStandardMaterial({ color: '#2a1a10', roughness: 0.3, metalness: 0.8, emissive: '#3a1004' });
   const shards = new THREE.InstancedMesh(new THREE.OctahedronGeometry(1, 0), shardMat, SHARDS);
   const shardData = Array.from({ length: SHARDS }, () => ({
-    base: new THREE.Vector3((rand() - 0.5) * 70, 2 + rand() * 22, -rand() * LENGTH),
+    // |x| ≥ 10 keeps the centre lane clear: shards pass the stage and the
+    // camera axis on either side instead of drifting in front of the mug.
+    base: new THREE.Vector3((rand() < 0.5 ? -1 : 1) * (10 + rand() * 25), 2 + rand() * 22, -rand() * LENGTH),
     size: 0.25 + Math.pow(rand(), 2) * 1.2,
     spin: rand() * 2,
     phase: rand() * 6.28,
