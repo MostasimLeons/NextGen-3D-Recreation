@@ -21,6 +21,9 @@ import { createCoffeePour } from './effects/coffeePour.js';
 import { createWorld } from './effects/world.js';
 import { createSteam } from './effects/steam.js';
 import { createOrbit } from './effects/orbit.js';
+import { createDust } from './effects/dust.js';
+import { createHeroInteractions } from './interactions/heroInteractions.js';
+import { createSpring2D } from './interactions/spring.js';
 
 const COASTER = { radius: 5, height: 0.62 };
 const { lerp, clamp, degToRad } = THREE.MathUtils;
@@ -170,12 +173,13 @@ export async function createHeroScene(container, { onReady } = {}) {
   knife.rotation.y = LAYOUT.knife.rotY;
   deskGroup.add(knife);
 
-  for (const c of LAYOUT.clips) {
+  const clips = LAYOUT.clips.map((c) => {
     const clip = createPaperClip();
     clip.position.set(c.x, 0, c.z);
     clip.rotation.y = c.rotY;
     deskGroup.add(clip);
-  }
+    return clip;
+  });
 
   const deskMaterials = new Set();
   deskGroup.traverse((o) => {
@@ -252,6 +256,26 @@ export async function createHeroScene(container, { onReady } = {}) {
   /* Camera ------------------------------------------------------------ */
   const camera = new THREE.PerspectiveCamera(30, 1, 0.3, 400);
   const post = createPost(renderer, scene, camera, { lowPower });
+
+  /* Hero micro-interactions + ambient dust ------------------------------- */
+  const interactions = createHeroInteractions({
+    element: renderer.domElement,
+    camera,
+    liquid: mug.userData.liquid,
+    pencils: [creamPencil, greenPencil],
+    clips,
+    knife,
+    reducedMotion,
+  });
+  const dust = createDust({
+    count: lowPower ? 220 : 420,
+    lightFrom: key.position,
+    lightTo: key.target.position,
+  });
+  scene.add(dust.object);
+  // Pointer with inertia: a slightly under-damped spring, so the camera
+  // drifts after the hand and settles with a hint of overshoot.
+  const pointerSpring = createSpring2D({ stiffness: 26, damping: 8.2 });
   const pointer = { x: 0, y: 0, sx: 0, sy: 0 };
   const heroPos = new THREE.Vector3();
   const heroTarget = new THREE.Vector3();
@@ -274,11 +298,14 @@ export async function createHeroScene(container, { onReady } = {}) {
     const tilt = degToRad(params.tilt);
     const visibleH = width / camera.aspect;
     const dist = visibleH / 2 / Math.tan(degToRad(camera.fov / 2)) / params.zoom;
-    const px = pointer.sx * 0.7 * params.parallax;
-    const pz = pointer.sy * 0.5 * params.parallax;
+    // Parallax: the camera travels with the pointer while its aim moves far
+    // less, so tall things (mug) slide against the flat props (pencils,
+    // knife, clips) — real depth instead of a flat pan.
+    const px = pointer.sx * 1.8 * params.parallax;
+    const pz = pointer.sy * 1.25 * params.parallax;
     const tx = target.x + params.focusX;
     const tz = target.z + params.focusZ;
-    heroTarget.set(tx + px * 0.3, 0, tz + pz * 0.3);
+    heroTarget.set(tx + px * 0.18, 0, tz + pz * 0.18);
     heroPos.set(tx + px, Math.cos(tilt) * dist, tz + Math.sin(tilt) * dist + pz);
   }
 
@@ -330,8 +357,10 @@ export async function createHeroScene(container, { onReady } = {}) {
     // fast scrolls never jump). rig.smoothing = 0 → exact (reduced motion).
     const k = (rig?.smoothing ?? 1) && !reducedMotion ? 1 - Math.exp(-dt * 6) : 1;
     for (const key of stateKeys) view[key] += (state[key] - view[key]) * (userKey[key] ? 1 : k);
-    pointer.sx += (pointer.x - pointer.sx) * 0.05;
-    pointer.sy += (pointer.y - pointer.sy) * 0.05;
+    pointerSpring.setTarget(pointer.x, pointer.y);
+    pointerSpring.update(dt);
+    pointer.sx = pointerSpring.x.value;
+    pointer.sy = pointerSpring.y.value;
 
     const h = clamp(view.hero, 0, 1);
     const idle = reducedMotion ? 0 : params.idle;
@@ -431,7 +460,17 @@ export async function createHeroScene(container, { onReady } = {}) {
     steamOrigin.set(0, 5.35, 0);
     mug.localToWorld(steamOrigin);
     steam.setOrigin(steamOrigin);
-    steam.update(ft, view.steam * (1 - h) * upright * coffee.level * ms);
+    // In the hero a softer plume rises off the coffee, lifted on mug hover.
+    const heroSteam = h * (0.85 + 0.55 * interactions.mugHover);
+    steam.update(ft, (view.steam * (1 - h) + heroSteam) * upright * coffee.level * ms);
+
+    // Hero desk: prop micro-interactions + ambient dust in the key light.
+    interactions.update(dt, h > 0.6 && deskGroup.visible && view.userFlip < 0.01);
+    dust.update(ft, {
+      intensity: h * clamp(view.desk, 0, 1),
+      mouse: interactions.pointerWorld,
+      mouseOn: interactions.pointerOn,
+    });
 
     // Capability orbit (toolkit).
     orbit.update(ft, clamp(view.orbit, 0, 1) * (1 - h), narrowFit());
@@ -504,6 +543,7 @@ export async function createHeroScene(container, { onReady } = {}) {
     timer.dispose();
     ro.disconnect();
     window.removeEventListener('pointermove', onPointerMove);
+    interactions.dispose();
     post.dispose();
     scene.traverse((o) => {
       if (!o.isMesh && !o.isPoints) return;

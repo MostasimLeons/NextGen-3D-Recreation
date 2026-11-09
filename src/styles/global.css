@@ -59,3 +59,8 @@ h1 {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Hero desk props are clickable 3D objects (three/interactions). */
+html.is-prop-hover {
+  cursor: pointer;
+}

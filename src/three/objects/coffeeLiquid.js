@@ -12,11 +12,17 @@ import { createCoffeeTexture } from '../textures.js';
  * The shader is injected into MeshPhysicalMaterial (onBeforeCompile), so the
  * liquid keeps full PBR lighting, clearcoat and environment reflections.
  *
+ * Hover ripples: up to RIPPLES travelling ring packets (addRipple) are
+ * summed on top of the wave field, each with its analytic gradient so the
+ * clearcoat highlight bends across the ring.
+ *
  * Two clipping planes (rim + inner floor), re-aimed every frame from the
  * mug's world transform, keep the level surface inside the mug: where it
  * meets the lip it is cut cleanly, exactly where real coffee would spill.
  * (Needs renderer.localClippingEnabled = true; ignored elsewhere.)
  */
+const RIPPLES = 6;
+
 export function createCoffeeLiquid({ innerRadius, floorY = 0.4, maxDepth = 4.2, rimY = 5.35 }) {
   const group = new THREE.Group();
   group.name = 'coffeeLiquid';
@@ -34,7 +40,13 @@ export function createCoffeeLiquid({ innerRadius, floorY = 0.4, maxDepth = 4.2, 
   group.add(body);
 
   /* Surface (turbulent, sloshing) ------------------------------------ */
-  const uniforms = { uTime: { value: 0 }, uAmp: { value: 0 } };
+  const uniforms = {
+    uTime: { value: 0 },
+    uAmp: { value: 0 },
+    // xy = source (surface-local), z = start time, w = strength (0 = unused)
+    uRipples: { value: Array.from({ length: RIPPLES }, () => new THREE.Vector4(0, 0, -100, 0)) },
+  };
+  let rippleSlot = 0;
   const surfaceMat = new THREE.MeshPhysicalMaterial({
     map: createCoffeeTexture(),
     roughness: 0.05,
@@ -45,6 +57,7 @@ export function createCoffeeLiquid({ innerRadius, floorY = 0.4, maxDepth = 4.2, 
   surfaceMat.onBeforeCompile = (shader) => {
     shader.uniforms.uTime = uniforms.uTime;
     shader.uniforms.uAmp = uniforms.uAmp;
+    shader.uniforms.uRipples = uniforms.uRipples;
     // Shared wave field: three travelling sines + a radial ring, with its
     // analytic gradient so normals (and therefore highlights) move too.
     const waves = /* glsl */ `
@@ -61,6 +74,29 @@ export function createCoffeeLiquid({ innerRadius, floorY = 0.4, maxDepth = 4.2, 
         );
         return a * 0.6 + b * 0.4 + c * 0.5;
       }
+
+      // Hover ripples: a Gaussian ring packet travelling outward from each
+      // source, damped over time and spread (1/sqrt r) as it widens.
+      uniform vec4 uRipples[${RIPPLES}];
+      float ripples(vec2 p, out vec2 grad) {
+        float h = 0.0;
+        grad = vec2(0.0);
+        for (int i = 0; i < ${RIPPLES}; i++) {
+          vec4 R = uRipples[i];
+          float age = uTime - R.z;
+          if (R.w <= 0.0 || age < 0.0 || age > 3.0) continue;
+          vec2 d = p - R.xy;
+          float r = length(d) + 1e-4;
+          float x = r - age * 3.2;              // distance behind the front
+          float g = exp(-x * x * 2.2);          // packet envelope
+          float s = R.w * exp(-age * 1.7) / sqrt(1.0 + r * 1.5);
+          float ph = x * 7.0;
+          h += s * g * sin(ph);
+          float dhdr = s * g * (7.0 * cos(ph) - 4.4 * x * sin(ph));
+          grad += dhdr * d / r;
+        }
+        return h;
+      }
     `;
     shader.vertexShader = shader.vertexShader
       .replace('#include <common>', `#include <common>\n${waves}`)
@@ -69,15 +105,17 @@ export function createCoffeeLiquid({ innerRadius, floorY = 0.4, maxDepth = 4.2, 
         /* glsl */ `
           vec2 wGrad;
           float wH = wave(position.xy, wGrad);
+          vec2 rGrad;
+          float rH = ripples(position.xy, rGrad);
           // Pin the meniscus: the wall edge moves less than the middle.
           float pin = 1.0 - smoothstep(${(innerRadius * 0.75).toFixed(3)}, ${innerRadius.toFixed(3)}, length(position.xy)) * 0.6;
-          vec3 objectNormal = normalize(vec3(-wGrad * uAmp * pin, 1.0));
+          vec3 objectNormal = normalize(vec3(-(wGrad * uAmp + rGrad) * pin, 1.0));
           #ifdef USE_TANGENT
             vec3 objectTangent = vec3( tangent.xyz );
           #endif
         `,
       )
-      .replace('#include <begin_vertex>', `vec3 transformed = vec3(position);\ntransformed.z += wH * uAmp * pin;`);
+      .replace('#include <begin_vertex>', `vec3 transformed = vec3(position);\ntransformed.z += (wH * uAmp + rH) * pin;`);
   };
   const surface = new THREE.Mesh(new THREE.RingGeometry(0.001, innerRadius * 0.995, 96, 20), surfaceMat);
   surface.name = 'coffeeSurface';
@@ -129,6 +167,17 @@ export function createCoffeeLiquid({ innerRadius, floorY = 0.4, maxDepth = 4.2, 
 
   return {
     group,
+    surface,
+    innerRadius,
+    /**
+     * Start a ring ripple at a surface-local point (x, y in the disc plane).
+     * @param strength  height of the packet (≈ 0.02 subtle … 0.09 a tap)
+     */
+    addRipple(x, y, strength = 0.04) {
+      const r = uniforms.uRipples.value[rippleSlot];
+      r.set(x, y, uniforms.uTime.value, strength);
+      rippleSlot = (rippleSlot + 1) % RIPPLES;
+    },
     get level() {
       return level;
     },

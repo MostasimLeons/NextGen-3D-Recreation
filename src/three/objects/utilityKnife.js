@@ -49,6 +49,12 @@ export function createUtilityKnife({ length = 10, width = 1.8, height = 0.8 } = 
   slider.position.set(length * 0.3, height + 0.1, 0);
   group.add(slider);
 
+  // Blade carriage: the blade + snap lines move together along +X, so the
+  // blade can slide in and out of the nose (see interactions/heroProps.js).
+  const carriage = new THREE.Group();
+  carriage.name = 'bladeCarriage';
+  group.add(carriage);
+
   // Steel nose guide.
   const nose = new THREE.Mesh(new THREE.BoxGeometry(0.5, height * 0.7, width * 0.86), steel);
   nose.position.set(length / 2 + 0.05, height * 0.4, 0);
@@ -67,17 +73,19 @@ export function createUtilityKnife({ length = 10, width = 1.8, height = 0.8 } = 
   bladeGeo.rotateX(-Math.PI / 2);
   const blade = new THREE.Mesh(bladeGeo, steel);
   blade.position.set(length / 2 + 0.2, height * 0.38, 0);
-  group.add(blade);
+  carriage.add(blade);
 
   // Snap lines on the blade.
   for (let i = 0; i < 3; i++) {
     const score = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.01, bw * 1.15), scoreMat);
     score.position.set(length / 2 + 0.55 + i * 0.5, height * 0.38 + 0.045, 0);
     score.rotation.y = -0.6;
-    group.add(score);
+    carriage.add(score);
   }
 
   enableShadows(group);
   group.name = 'utilityKnife';
+  // Slider travel per unit of blade travel (the thumb button drives it).
+  group.userData.blade = { carriage, slider, sliderX: slider.position.x, maxOut: 1.4, maxIn: -2.3 };
   return group;
 }
