@@ -10,6 +10,12 @@ import { createUtilityKnife } from './objects/utilityKnife.js';
 import { createPaperClip } from './objects/paperClip.js';
 import { createGamepad } from './objects/gamepad.js';
 import { createVrHeadset } from './objects/vrHeadset.js';
+import { createBackdrop } from './effects/backdrop.js';
+import { createPost } from './effects/post.js';
+import { createEmbers } from './effects/embers.js';
+import { createSmoke } from './effects/smoke.js';
+import { createLightTrails } from './effects/lightTrails.js';
+import { createVoxels } from './effects/voxels.js';
 
 const COASTER = { radius: 5, height: 0.62 };
 const { lerp, clamp, degToRad } = THREE.MathUtils;
@@ -59,13 +65,20 @@ export async function createHeroScene(container, { onReady } = {}) {
   const stateKeys = Object.keys(HERO_STATE);
 
   /* Renderer ---------------------------------------------------------- */
-  // alpha: the page's warm CSS background shows through once the desk fades.
-  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-  renderer.setClearColor(0x000000, 0);
+  // Post-processing owns AA (multisampling) and tone mapping (ACES effect),
+  // so the renderer itself renders linear HDR without either.
+  const lowPower = Math.min(window.innerWidth, window.innerHeight) < 700;
+  const renderer = new THREE.WebGLRenderer({
+    antialias: false,
+    alpha: false,
+    stencil: false,
+    depth: true,
+    powerPreference: 'high-performance',
+  });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, lowPower ? 1.5 : 1.75));
+  renderer.setClearColor('#100904', 1);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
-  renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.0;
+  renderer.toneMapping = THREE.NoToneMapping;
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFShadowMap;
   renderer.domElement.setAttribute('aria-hidden', 'true');
@@ -77,6 +90,11 @@ export async function createHeroScene(container, { onReady } = {}) {
   const envTex = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
   scene.environment = envTex;
   scene.environmentIntensity = state.env;
+
+  // GLSL backdrop (warm gradient, scroll-driven glow, smoke, grain).
+  const backdrop = createBackdrop();
+  scene.add(backdrop);
+  const bgU = backdrop.material.uniforms;
 
   /* Lights ------------------------------------------------------------ */
   const hemi = new THREE.HemisphereLight('#ffe2c2', '#4a2c18', state.hemi);
@@ -190,12 +208,20 @@ export async function createHeroScene(container, { onReady } = {}) {
     scene.add(a);
   }
   const ease = (x) => x * x * (3 - 2 * x); // smoothstep for scale pops
+
+  /* Atmosphere: embers, smoke, light trails, voxels -------------------- */
+  const embers = createEmbers({ count: lowPower ? 420 : 900, center: STAGE });
+  const smoke = createSmoke({ count: lowPower ? 24 : 40 });
+  const trails = createLightTrails({ center: STAGE });
+  const voxels = createVoxels({ count: lowPower ? 40 : 70, center: STAGE });
+  for (const fx of [embers, smoke, trails, voxels]) scene.add(fx.object);
   const flipOffset = new THREE.Vector3();
   const flipEuler = new THREE.Euler();
   const glazeColors = GLAZES.map((c) => new THREE.Color(c));
 
   /* Camera ------------------------------------------------------------ */
   const camera = new THREE.PerspectiveCamera(30, 1, 0.3, 400);
+  const post = createPost(renderer, scene, camera, { lowPower });
   const pointer = { x: 0, y: 0, sx: 0, sy: 0 };
   const heroPos = new THREE.Vector3();
   const heroTarget = new THREE.Vector3();
@@ -207,8 +233,10 @@ export async function createHeroScene(container, { onReady } = {}) {
     const w = container.clientWidth || window.innerWidth;
     const h = container.clientHeight || window.innerHeight;
     renderer.setSize(w, h, false);
+    post.setSize(w, h);
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
+    bgU.uAspect.value = w / h;
   }
 
   function computeHeroCamera() {
@@ -338,7 +366,18 @@ export async function createHeroScene(container, { onReady } = {}) {
     const gi = Math.min(Math.floor(g), glazeColors.length - 2);
     glazeMat.color.lerpColors(glazeColors[gi], glazeColors[gi + 1], g - gi);
 
-    renderer.render(scene, camera);
+    // Backdrop + atmosphere (frozen in time for reduced motion).
+    const ft = reducedMotion ? 0 : t;
+    bgU.uTime.value = ft;
+    bgU.uGlow.value = view.glow;
+    bgU.uGlowPos.value.set(view.gx, 1 - view.gy);
+    bgU.uTint.value = view.tint;
+    embers.update(ft, clamp(view.embers, 0, 1.5));
+    smoke.update(ft, clamp(view.smoke, 0, 1.5));
+    trails.update(ft, clamp(view.trails, 0, 1.5));
+    voxels.update(ft, clamp(view.voxels, 0, 1.2));
+
+    post.render(dt);
 
     if (first) {
       first = false;
@@ -364,8 +403,9 @@ export async function createHeroScene(container, { onReady } = {}) {
     timer.dispose();
     ro.disconnect();
     window.removeEventListener('pointermove', onPointerMove);
+    post.dispose();
     scene.traverse((o) => {
-      if (!o.isMesh) return;
+      if (!o.isMesh && !o.isPoints) return;
       o.geometry.dispose();
       const mats = Array.isArray(o.material) ? o.material : [o.material];
       for (const m of mats) {

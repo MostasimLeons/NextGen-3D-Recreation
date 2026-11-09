@@ -214,7 +214,8 @@
 .process__track {
   left: 0;
   top: 50%;
-  translate: 0 -30%;
+  translate: 0 -42%;
+  align-items: center;
   display: flex;
   gap: clamp(14px, 1.6vw, 26px);
   margin: 0;
@@ -224,8 +225,8 @@
 }
 .process-card {
   flex: none;
-  width: clamp(260px, 26vw, 420px);
-  aspect-ratio: 4 / 5;
+  width: clamp(250px, 22vw, 360px);
+  aspect-ratio: 4 / 4.6;
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -272,30 +273,51 @@
   color: var(--c-cream-dim);
 }
 
-/* 10. Projects -------------------------------------------------------- */
-.projects__eyebrow {
+/* Live preview tiles inside the track */
+.process__tile {
+  flex: none;
+  width: clamp(300px, 30vw, 500px);
+  align-self: center;
+  --tile-ratio: 4 / 3;
+}
+
+/* Tech-name marquee (Unity, Unreal Engine, Blender, Three.js, WebGL, VR) */
+.tech-marquee {
+  left: 0;
+  right: 0;
+  bottom: clamp(10px, 3vh, 34px);
+  overflow: hidden;
+  pointer-events: none;
+}
+.tech-marquee__row {
   display: flex;
-  gap: 14px;
+  width: max-content;
+  will-change: transform;
 }
-.projects__note {
+.tech-marquee__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35em;
+  padding-right: 0.35em;
+  font-family: var(--f-display);
+  font-weight: 600;
+  font-size: clamp(56px, 8.6vw, 168px);
+  line-height: 1;
+  letter-spacing: -0.045em;
+  white-space: nowrap;
+  color: rgba(255, 237, 215, 0.16);
+}
+.tech-marquee__item.is-outline {
+  color: transparent;
+  -webkit-text-stroke: 1px rgba(255, 237, 215, 0.32);
+}
+.tech-marquee__sep {
+  font-size: 0.32em;
   color: var(--c-orange-glow);
-  font-family: var(--f-mono);
-  font-weight: 400;
+  -webkit-text-stroke: 0;
+  opacity: 0.8;
 }
-.projects__index {
-  font-family: var(--f-mono);
-  font-size: 0.22em;
-  font-weight: 400;
-  letter-spacing: 0;
-  align-self: flex-start;
-  margin-top: 0.4em;
-  color: var(--c-orange-glow);
-  opacity: 0.4;
-  transition: opacity 0.5s;
-}
-.projects__item.is-active .projects__index {
-  opacity: 1;
-}
+
 
 /* Outro ---------------------------------------------------------------- */
 .outro__line {
@@ -381,10 +403,6 @@
     width: 72vw;
   }
 
-  .projects__eyebrow {
-    flex-direction: column;
-    gap: 4px;
-  }
   .outro__line {
     font-size: 22px;
   }

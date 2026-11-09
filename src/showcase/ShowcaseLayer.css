@@ -1,0 +1,8 @@
+/* Fixed overlay canvas; Views scissor into their DOM boxes, the rest stays
+   transparent. Pointer events come from the page via eventSource. */
+.showcase-layer {
+  position: fixed !important;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}

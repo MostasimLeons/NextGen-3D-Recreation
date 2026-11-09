@@ -3,7 +3,9 @@ import SceneLayer from './components/SceneLayer.jsx';
 import Header from './components/Header.jsx';
 import Hero from './components/Hero.jsx';
 import Story from './components/story/Story.jsx';
+import ShowcaseLayer from './showcase/ShowcaseLayer.jsx';
 import { useScrollStory } from './story/useScrollStory.js';
+import './styles/hud.css';
 
 export default function App() {
   const mainRef = useRef(null);
@@ -25,6 +27,19 @@ export default function App() {
         <Hero />
         <Story rig={rig} />
       </main>
+      <ShowcaseLayer />
+      {/* Fixed story HUD (filled by useScrollStory, no React re-renders) */}
+      <div className="story-hud" aria-hidden="true">
+        <span className="story-hud__index" data-hud-index>
+          01
+        </span>
+        <span className="story-hud__label" data-hud-label>
+          Intro
+        </span>
+        <span className="story-hud__bar">
+          <i data-hud-bar />
+        </span>
+      </div>
     </>
   );
 }

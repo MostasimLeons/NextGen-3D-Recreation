@@ -90,6 +90,12 @@ export const content = {
     process: {
       eyebrow: 'How we work',
       title: 'Runs on the edge of play',
+      tech: ['Unity', 'Unreal Engine', 'Blender', 'Three.js', 'WebGL', 'VR'],
+      tiles: [
+        { id: 'lattice', label: 'Voxel wave', meta: 'Engine test', after: 0 },
+        { id: 'shader', label: 'Fire shader', meta: 'GLSL · WebGL', after: 2 },
+        { id: 'turntable', label: 'Mug turntable', meta: 'Asset review', after: 4 },
+      ],
       cards: [
         { kicker: 'Always on', title: 'Runs on coffee', body: 'Fuel: espresso. Uptime: whenever the idea is good.', meta: 'Power draw (est.): 2 cups / hour' },
         { kicker: 'One team', title: 'Four disciplines', body: 'Game development, 3D art, VR and creative design sit at the same desk.', meta: 'Hand-offs: as few as possible' },
@@ -98,13 +104,46 @@ export const content = {
       ],
     },
     projects: {
-      eyebrow: 'Our projects',
-      note: 'Case studies coming soon',
-      items: [
-        { name: 'Game projects', body: 'Playable games and interactive prototypes built in Unity and Unreal Engine.' },
-        { name: '3D projects', body: 'Modeled, textured and animated assets and scenes, made for real-time.' },
-        { name: 'VR experiences', body: 'Immersive virtual reality you move through, not just watch.' },
-        { name: 'Creative work', body: 'UI/UX, visual design and motion graphics that tie it all together.' },
+      eyebrow: 'Explore what we make',
+      note: 'Live real-time previews · case studies coming soon',
+      hint: 'Drag to rotate',
+      categories: [
+        {
+          id: 'game',
+          name: 'Game Development',
+          short: 'Games',
+          body: 'Playable worlds and interactive prototypes built in Unity and Unreal Engine — level, loop and feel first.',
+          stage: 'Level prototype',
+          previews: [
+            { id: 'coins', label: 'Coin run', meta: 'Gameplay loop' },
+            { id: 'sparks', label: 'Hit sparks', meta: 'VFX pass' },
+            { id: 'orbit', label: 'Level orbit', meta: 'Camera study' },
+          ],
+        },
+        {
+          id: 'art',
+          name: '3D Art & VR',
+          short: '3D & VR',
+          body: 'Modeled, sculpted and animated assets, and VR spaces made to be stepped into — not just looked at.',
+          stage: 'Sculpt & headset',
+          previews: [
+            { id: 'wire', label: 'Wireframe', meta: 'Topology pass' },
+            { id: 'rig', label: 'Rig test', meta: 'Animation' },
+            { id: 'vr', label: 'VR headset', meta: 'Hardware study' },
+          ],
+        },
+        {
+          id: 'design',
+          name: 'Creative Design',
+          short: 'Design',
+          body: 'Interfaces, visual systems and motion graphics with the same precision as a hand-pulled handle.',
+          stage: 'Interface & motion',
+          previews: [
+            { id: 'morph', label: 'Shape morph', meta: 'Motion graphics' },
+            { id: 'ui', label: 'Interface', meta: 'UI/UX' },
+            { id: 'bars', label: 'Kinetic type', meta: 'Visual rhythm' },
+          ],
+        },
       ],
     },
     outro: {
