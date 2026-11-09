@@ -1,0 +1,253 @@
+/* Interactive showcase (projects section) */
+.explore {
+  inset: 0;
+  display: grid;
+  grid-template-columns: minmax(260px, 27vw) 1fr;
+  grid-template-rows: 1fr auto;
+  gap: clamp(14px, 1.6vw, 26px);
+  padding: clamp(74px, 10vh, 110px) var(--gutter) clamp(18px, 3vh, 32px);
+}
+.explore__intro {
+  position: relative;
+  grid-row: 1 / span 2;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(14px, 1.5vw, 22px);
+}
+.explore__tabs {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.explore__tab {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5em;
+  padding: 4px 0;
+  text-align: left;
+  font-family: var(--f-display);
+  font-size: clamp(26px, 2.9vw, 52px);
+  font-weight: 600;
+  letter-spacing: -0.035em;
+  line-height: 1;
+  color: rgba(255, 237, 215, 0.26);
+  transition: color 0.4s var(--ease-out);
+}
+.explore__tab:hover {
+  color: rgba(255, 237, 215, 0.6);
+}
+.explore__tab.is-active {
+  color: var(--c-cream);
+}
+.explore__tab-index {
+  font-family: var(--f-mono);
+  font-size: 0.24em;
+  font-weight: 400;
+  letter-spacing: 0;
+  color: var(--c-orange-glow);
+}
+.explore__body {
+  max-width: 24em;
+  font-size: clamp(14px, 1.1vw, 18px);
+  line-height: 1.45;
+  font-weight: 400;
+  color: rgba(255, 237, 215, 0.84);
+  animation: explore-in 0.6s var(--ease-out);
+}
+@keyframes explore-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+.explore__note {
+  margin-top: auto;
+  font-family: var(--f-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  color: var(--c-orange-glow);
+}
+
+.explore__stage {
+  position: relative;
+  border-radius: 16px;
+  overflow: hidden;
+  min-height: 0;
+  /* Theme colours are GSAP-tweened CSS variables (set on .explore) */
+  background:
+    radial-gradient(70% 60% at 50% 72%, var(--panel-a, rgba(220, 80, 0, 0.22)), transparent 72%),
+    linear-gradient(180deg, transparent 40%, rgba(var(--c-shade), 0.5)),
+    var(--panel-b, rgba(var(--c-shade), 0.35));
+  border: 1px solid color-mix(in srgb, var(--accent, #ff7a2a) 30%, transparent);
+  box-shadow: 0 30px 80px -40px color-mix(in srgb, var(--accent, #ff7a2a) 55%, transparent);
+  cursor: grab;
+}
+
+/* Cinematic overlay typography ------------------------------------------ */
+.explore__overlay {
+  position: absolute;
+  left: clamp(16px, 1.8vw, 28px);
+  top: clamp(14px, 1.8vw, 26px);
+  right: 30%;
+  pointer-events: none;
+}
+.explore__meta {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  font-family: var(--f-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.explore__index {
+  font-size: clamp(22px, 2.2vw, 36px);
+  color: var(--accent, #ff7a2a);
+  letter-spacing: 0;
+}
+.explore__theme {
+  color: var(--c-cream-dim);
+}
+.explore__title {
+  margin: 6px 0 10px;
+  font-family: var(--f-display);
+  font-weight: 600;
+  font-size: clamp(30px, 3.6vw, 64px);
+  line-height: 0.92;
+  letter-spacing: -0.04em;
+  color: var(--c-cream);
+  text-shadow: 0 6px 30px rgba(var(--c-shade), 0.6);
+}
+.split-word {
+  display: inline-flex;
+  overflow: hidden; /* letters rise from behind a mask */
+  padding-bottom: 0.08em;
+  margin-right: 0.24em;
+}
+.split-char {
+  display: inline-block;
+  will-change: transform, opacity;
+}
+.explore__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.explore__tags li {
+  padding: 5px 10px;
+  border: 1px dashed color-mix(in srgb, var(--accent, #ff7a2a) 60%, transparent);
+  border-radius: 999px;
+  font-family: var(--f-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--c-cream);
+  background: rgba(var(--c-shade), 0.35);
+}
+
+/* Orange wipe that crosses the stage on every category switch */
+.explore__wipe {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--accent, #ff7a2a) 55%, transparent) 46%,
+    rgba(255, 176, 102, 0.6) 54%,
+    transparent
+  );
+  mix-blend-mode: screen;
+  opacity: 0;
+  transform: scaleX(0);
+  pointer-events: none;
+}
+
+/* Accent follows the theme: active tab index, preview frames */
+.explore__tab.is-active .explore__tab-index {
+  color: var(--accent, #ff7a2a);
+}
+.explore .preview-tile {
+  border-color: color-mix(in srgb, var(--accent, #ff7a2a) 55%, transparent);
+}
+.explore__stage:active {
+  cursor: grabbing;
+}
+.explore__view {
+  position: absolute;
+  inset: 0;
+}
+.explore__stage-hud {
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: 12px;
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--f-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  color: var(--c-cream-dim);
+  pointer-events: none;
+}
+
+.explore__previews {
+  position: relative;
+  display: grid;
+  --tile-ratio: 16 / 8;
+  grid-template-columns: repeat(3, 1fr);
+  gap: clamp(10px, 1vw, 16px);
+}
+
+@media (max-width: 1024px) {
+  .explore {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr auto;
+  }
+  .explore__intro {
+    grid-row: auto;
+  }
+  .explore__tabs {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 6px 18px;
+  }
+  .explore__tab {
+    font-size: clamp(20px, 3.4vw, 30px);
+  }
+  .explore__note {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .explore__overlay {
+    right: 12px;
+  }
+  .explore__title {
+    font-size: 26px;
+  }
+  .explore__tags li:nth-child(n + 3) {
+    display: none; /* keep the stage readable on phones */
+  }
+  .explore {
+    padding-top: 64px;
+    gap: 10px;
+  }
+  .explore__tab {
+    font-size: 17px;
+  }
+  .explore__body {
+    font-size: 13px;
+  }
+  .explore__previews {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+  }
+  .explore__previews .preview-tile__meta,
+  .explore__previews .preview-tile__time {
+    display: none;
+  }
+}

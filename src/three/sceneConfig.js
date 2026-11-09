@@ -76,6 +76,22 @@ export const HERO_STATE = {
   vrS: 0,
   arx: 0, // actor rotation (gamepad / headset), radians
   ary: 0,
+  // Background shader (GLSL backdrop): glow amount, glow position (0–1,
+  // y measured from the top), deep-red tint.
+  glow: 0,
+  gx: 0.5,
+  gy: 0.6,
+  tint: 0,
+  // Atmosphere intensities 0–1.
+  embers: 0,
+  smoke: 0,
+  trails: 0,
+  voxels: 0,
+  // Immersive world (after the hero): presence 0–1, plus section actors.
+  world: 0, // corridor floor / gates / monoliths / shards
+  steam: 0, // steam rising from the upright mug
+  orbit: 0, // capability orbit (toolkit)
+  formation: 0, // outro: gamepad + headset flank the mug
   // Driven by UI interaction, never by the scroll timeline (prefix "user").
   userFlip: 0,
 };

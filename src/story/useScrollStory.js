@@ -2,6 +2,8 @@ import { useLayoutEffect } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { STORY } from './storyConfig.js';
+import { techProgress, TECH_CHAPTER_EVENT } from './techChapter.js';
+import { content } from '../content.js';
 import { HERO_STATE, isUserKey } from '../three/sceneConfig.js';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -12,17 +14,26 @@ if (import.meta.env.DEV) window.__ScrollTrigger = ScrollTrigger; // debugging ai
 const STATE_KEYS = Object.keys(HERO_STATE).filter((k) => !isUserKey(k));
 const pick = (obj) => Object.fromEntries(STATE_KEYS.map((k) => [k, obj[k]]));
 
+/** Story `bg` ({ glow, x %, y %, tint }) → backdrop shader state fields. */
+const bgToState = (bg, prev) => ({
+  glow: bg.glow,
+  gx: bg.x / 100,
+  gy: bg.y / 100,
+  tint: bg.tint ?? prev.tint ?? 0,
+});
+
 /**
  * Resolve every step into a full state (each step inherits the previous one)
  * plus its scroll window inside its section, in viewport-height units.
  */
 function resolveSteps() {
   const out = [];
-  let prev = { ...HERO_STATE, bg: STORY[0].steps[0].bg };
+  let prev = { ...HERO_STATE, ...bgToState(STORY[0].steps[0].bg, HERO_STATE) };
   for (const section of STORY) {
     const n = section.steps.length;
     section.steps.forEach((step, j) => {
-      const next = { ...prev, ...step, bg: step.bg ?? prev.bg };
+      const next = { ...prev, ...step };
+      if (step.bg) Object.assign(next, bgToState(step.bg, prev));
       let from;
       let to;
       if (j === 0) {
@@ -49,7 +60,8 @@ function resolveSteps() {
  *  - 3D: fromTo tweens on rig.state, one non-overlapping scroll window per
  *    step (scrub: true). The scene smooths the values itself, so tweens
  *    never fight and forward/backward scrolling is deterministic.
- *  - Background glow, typography reveals, counters, variant list, header logo.
+ *  - Background (GLSL backdrop) + atmosphere are plain state fields too.
+ *  - Typography reveals, counters, header logo.
  *  - Reduced motion: no scrubbed motion; scene/text snap per step.
  */
 export function useScrollStory(rig, rootRef) {
@@ -60,14 +72,9 @@ export function useScrollStory(rig, rootRef) {
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     rig.smoothing = reduced ? 0 : 1;
     const steps = resolveSteps();
-    const glow = document.querySelector('.scene-bg__glow');
     const vh = () => window.innerHeight;
     const sectionEl = (id) => root.querySelector(`[data-story="${id}"]`);
     const pos = (offsetVh) => () => `top+=${Math.round(offsetVh * vh())} top`;
-
-    /* Background glow (compositor-only: opacity + transform) ------------ */
-    const applyBg = (bg) => ({ opacity: bg.glow, x: `${bg.x - 50}vw`, y: `${bg.y - 50}vh` });
-    if (glow) gsap.set(glow, { xPercent: -50, yPercent: -50, ...applyBg(STORY[0].steps[0].bg) });
 
     const ctx = gsap.context(() => {
       /* 3D keyframes ---------------------------------------------------- */
@@ -78,20 +85,14 @@ export function useScrollStory(rig, rootRef) {
           ScrollTrigger.create({
             trigger: sectionEl(s.section),
             start: pos((s.from + s.to) / 2),
-            onEnter: () => {
-              Object.assign(rig.state, pick(s.next));
-              if (glow) gsap.set(glow, applyBg(s.next.bg));
-            },
-            onLeaveBack: () => {
-              Object.assign(rig.state, pick(s.prev));
-              if (glow) gsap.set(glow, applyBg(s.prev.bg));
-            },
+            onEnter: () => Object.assign(rig.state, pick(s.next)),
+            onLeaveBack: () => Object.assign(rig.state, pick(s.prev)),
           });
         }
       }
     }, root);
 
-    /* One master timeline drives all 3D state + background glow. Positions
+    /* One master timeline drives all 3D state (incl. backdrop). Positions
        are scroll pixels measured from the DOM, so it is rebuilt on resize.
        Sequential, non-overlapping tweens inside a single timeline mean any
        scroll position (forward, backward, jump) renders one exact state. */
@@ -114,14 +115,6 @@ export function useScrollStory(rig, rootRef) {
         const end = Math.min(total, el.offsetTop + s.to * h);
         const dur = Math.max(1, end - start);
         master.fromTo(rig.state, pick(s.prev), { ...pick(s.next), duration: dur, immediateRender: false }, start);
-        if (glow) {
-          master.fromTo(
-            glow,
-            applyBg(s.prev.bg),
-            { ...applyBg(s.next.bg), duration: dur, ease: 'none', immediateRender: false },
-            start,
-          );
-        }
       }
       master.set({}, {}, total); // pad so timeline time === scroll px
     }
@@ -147,6 +140,33 @@ export function useScrollStory(rig, rootRef) {
     window.addEventListener('resize', onResize);
 
     ctx.add(() => {
+      /* HUD: section index/label + overall progress ----------------------- */
+      const hudIndex = document.querySelector('[data-hud-index]');
+      const hudLabel = document.querySelector('[data-hud-label]');
+      const hudBar = document.querySelector('[data-hud-bar]');
+      STORY.forEach((section, i) => {
+        const el = sectionEl(section.id);
+        if (!el) return;
+        ScrollTrigger.create({
+          trigger: el,
+          start: 'top 50%',
+          end: 'bottom 50%',
+          onToggle: (self) => {
+            if (!self.isActive) return;
+            if (hudIndex) hudIndex.textContent = `${String(i + 1).padStart(2, '0')} / ${String(STORY.length).padStart(2, '0')}`;
+            if (hudLabel) hudLabel.textContent = section.label ?? section.id;
+          },
+        });
+      });
+      if (hudBar) {
+        ScrollTrigger.create({
+          trigger: root,
+          start: 'top top',
+          end: 'bottom bottom',
+          onUpdate: (self) => hudBar.style.setProperty('--p', self.progress.toFixed(4)),
+        });
+      }
+
       /* Header: small wordmark appears once the hero is left behind ------ */
       ScrollTrigger.create({
         trigger: sectionEl('intro'),
@@ -154,45 +174,60 @@ export function useScrollStory(rig, rootRef) {
         toggleClass: { targets: document.documentElement, className: 'is-past-hero' },
       });
 
-      /* Projects list: highlight the active category ---------------------- */
-      const variantItems = root.querySelectorAll('[data-variant]');
-      steps
-        .filter((s) => s.section === 'projects')
-        .forEach((s, j, arr) => {
-          const nextStep = arr[j + 1];
-          if (!variantItems[j]) return;
-          // toggleClass stays correct after jumps (anchor links, fast scroll).
-          ScrollTrigger.create({
-            trigger: sectionEl('projects'),
-            start: j === 0 ? 'top bottom' : pos((s.from + s.to) / 2),
-            end: nextStep ? pos((nextStep.from + nextStep.to) / 2) : 'bottom top',
-            toggleClass: { targets: variantItems[j], className: 'is-active' },
-          });
+      /* Whole-page progress → world travel (continuous, not keyframed) --- */
+      ScrollTrigger.create({
+        trigger: root,
+        start: 'top top',
+        end: 'bottom bottom',
+        onUpdate: (self) => (rig.scrollProgress = self.progress),
+        onRefresh: (self) => (rig.scrollProgress = self.progress),
+      });
+
+      /* "Runs on the edge of play": six technology chapters -------------- */
+      // One trigger over the pinned range: writes in-chapter progress (camera
+      // dolly + word fill) every update, and fires TECH_CHAPTER_EVENT only
+      // when the chapter index changes (React re-renders 6× per pass).
+      const processEl = sectionEl('process');
+      const techRoot = processEl?.querySelector('.tech');
+      if (processEl && techRoot) {
+        const len = STORY.find((s) => s.id === 'process').length;
+        const n = content.story.process.chapters.length;
+        const apply = (progress) => {
+          const p = Math.min(progress * n, n - 0.0001);
+          const i = Math.floor(p);
+          techProgress.current = p - i;
+          techRoot.style.setProperty('--fill', reduced ? '1' : (p - i).toFixed(3));
+          if (i !== techProgress.index) {
+            techProgress.index = i;
+            window.dispatchEvent(new CustomEvent(TECH_CHAPTER_EVENT, { detail: { index: i } }));
+          }
+        };
+        ScrollTrigger.create({
+          trigger: processEl,
+          start: 'top top',
+          end: () => `+=${Math.round((len - 1) * vh())}`,
+          onUpdate: (self) => apply(self.progress),
+          onRefresh: (self) => apply(self.progress),
         });
+      }
 
       if (reduced) return; // text stays static & visible
 
-      /* "How we work": horizontal card track scrubbed across the pin ------ */
-      const track = root.querySelector('[data-track]');
-      const processEl = sectionEl('process');
-      if (track && processEl) {
-        const len = STORY.find((s) => s.id === 'process').length;
+      /* Headline parallax: every section title drifts through its section
+         (yPercent composes with the reveal tweens' y — no conflict). */
+      root.querySelectorAll('.story-section h2:not([data-giant])').forEach((h2) => {
+        const section = h2.closest('.story-section');
         gsap.fromTo(
-          track,
-          { x: () => window.innerWidth * 0.55 },
+          h2,
+          { yPercent: 18, letterSpacing: '0.01em' },
           {
-            x: () => -(track.scrollWidth - window.innerWidth * 0.55),
+            yPercent: -18,
+            letterSpacing: '-0.035em',
             ease: 'none',
-            scrollTrigger: {
-              trigger: processEl,
-              start: pos(-0.3),
-              end: pos(len - 1),
-              scrub: true,
-              invalidateOnRefresh: true,
-            },
+            scrollTrigger: { trigger: section, start: 'top bottom', end: 'bottom top', scrub: true },
           },
         );
-      }
+      });
 
       /* Typography ------------------------------------------------------- */
       for (const section of STORY) {

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import gsap from 'gsap';
+import { playFlip } from '../../story/flipTimeline.js';
 import StorySection from './StorySection.jsx';
 import { content } from '../../content.js';
 
@@ -7,7 +7,8 @@ const copy = content.story.interactive;
 
 /**
  * "Interactive by default" (≈ oryzo's flip-encryption toy): type a message,
- * flip it — the text turns upside down and so does the 3D mug.
+ * flip it — the text turns upside down and the 3D mug pours its coffee out
+ * (spill particles, splashes, puddle). See story/flipTimeline.js.
  */
 export default function InteractiveSection({ rig }) {
   const [message, setMessage] = useState(copy.initial);
@@ -17,8 +18,9 @@ export default function InteractiveSection({ rig }) {
     setFlipped(next);
     if (!rig) return;
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    // userFlip is never written by the scroll timeline, so no conflicts.
-    gsap.to(rig.state, { userFlip: next ? 1 : 0, duration: reduced ? 0 : 1.1, ease: 'power3.inOut' });
+    // GSAP timeline: rotate (power2.inOut) + coffee burst at 90° + refill on
+    // the way back. userFlip is never written by the scroll timeline.
+    playFlip(rig, next, { reduced });
   }
 
   // Leaving the section (either direction) flips everything back upright.

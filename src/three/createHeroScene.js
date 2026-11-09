@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
-import { LAYOUT, MUG_SCALE, GLAZES, DEFAULT_PARAMS, HERO_STATE } from './sceneConfig.js';
+import { LAYOUT, MUG_SCALE, GLAZES, DEFAULT_PARAMS, HERO_STATE, isUserKey } from './sceneConfig.js';
 import { createDesk } from './objects/desk.js';
 import { createCuttingMat } from './objects/cuttingMat.js';
 import { createCoaster } from './objects/coaster.js';
@@ -10,6 +10,17 @@ import { createUtilityKnife } from './objects/utilityKnife.js';
 import { createPaperClip } from './objects/paperClip.js';
 import { createGamepad } from './objects/gamepad.js';
 import { createVrHeadset } from './objects/vrHeadset.js';
+import { createBackdrop } from './effects/backdrop.js';
+import { createPost } from './effects/post.js';
+import { createEmbers } from './effects/embers.js';
+import { createSmoke } from './effects/smoke.js';
+import { createLightTrails } from './effects/lightTrails.js';
+import { createVoxels } from './effects/voxels.js';
+import { createCoffeeSpill } from './effects/coffeeSpill.js';
+import { createCoffeePour } from './effects/coffeePour.js';
+import { createWorld } from './effects/world.js';
+import { createSteam } from './effects/steam.js';
+import { createOrbit } from './effects/orbit.js';
 
 const COASTER = { radius: 5, height: 0.62 };
 const { lerp, clamp, degToRad } = THREE.MathUtils;
@@ -57,15 +68,25 @@ export async function createHeroScene(container, { onReady } = {}) {
   const state = { ...HERO_STATE }; // target values (written by GSAP)
   const view = { ...HERO_STATE }; // smoothed values actually rendered
   const stateKeys = Object.keys(HERO_STATE);
+  // UI-driven values ("user*") already carry their own GSAP easing: no extra smoothing.
+  const userKey = Object.fromEntries(stateKeys.map((k) => [k, isUserKey(k)]));
 
   /* Renderer ---------------------------------------------------------- */
-  // alpha: the page's warm CSS background shows through once the desk fades.
-  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-  renderer.setClearColor(0x000000, 0);
+  // Post-processing owns AA (multisampling) and tone mapping (ACES effect),
+  // so the renderer itself renders linear HDR without either.
+  const lowPower = Math.min(window.innerWidth, window.innerHeight) < 700;
+  const renderer = new THREE.WebGLRenderer({
+    antialias: false,
+    alpha: false,
+    stencil: false,
+    depth: true,
+    powerPreference: 'high-performance',
+  });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, lowPower ? 1.5 : 1.75));
+  renderer.setClearColor('#100904', 1);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
-  renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.0;
+  renderer.toneMapping = THREE.NoToneMapping;
+  renderer.localClippingEnabled = true; // coffee surface is clipped to the mug
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFShadowMap;
   renderer.domElement.setAttribute('aria-hidden', 'true');
@@ -77,6 +98,11 @@ export async function createHeroScene(container, { onReady } = {}) {
   const envTex = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
   scene.environment = envTex;
   scene.environmentIntensity = state.env;
+
+  // GLSL backdrop (warm gradient, scroll-driven glow, smoke, grain).
+  const backdrop = createBackdrop();
+  scene.add(backdrop);
+  const bgU = backdrop.material.uniforms;
 
   /* Lights ------------------------------------------------------------ */
   const hemi = new THREE.HemisphereLight('#ffe2c2', '#4a2c18', state.hemi);
@@ -190,12 +216,42 @@ export async function createHeroScene(container, { onReady } = {}) {
     scene.add(a);
   }
   const ease = (x) => x * x * (3 - 2 * x); // smoothstep for scale pops
+
+  /* Atmosphere: embers, smoke, light trails, voxels -------------------- */
+  const embers = createEmbers({ count: lowPower ? 420 : 900, center: STAGE });
+  const smoke = createSmoke({ count: lowPower ? 24 : 40 });
+  const trails = createLightTrails({ center: STAGE });
+  const voxels = createVoxels({ count: lowPower ? 40 : 70, center: STAGE });
+  for (const fx of [embers, smoke, trails, voxels]) scene.add(fx.object);
+
+  /* Coffee spill (flip interaction): drops + splashes + puddle ---------- */
+  const spill = createCoffeeSpill({
+    maxDrops: lowPower ? 360 : 600,
+    maxSplash: lowPower ? 240 : 420,
+    floorY: -0.8,
+  });
+  scene.add(spill.object);
+  const coffee = createCoffeePour({ mug, spill, reducedMotion });
+
+  /* Immersive world + section actors ------------------------------------ */
+  const world = createWorld();
+  scene.add(world.object);
+  scene.fog = new THREE.FogExp2('#120604', 0); // density animated after the hero
+  const steam = createSteam({ count: lowPower ? 22 : 34 });
+  scene.add(steam.object);
+  const orbit = createOrbit({ center: STAGE });
+  scene.add(orbit.object);
+  const steamOrigin = new THREE.Vector3();
+  const FORMATION = { pad: new THREE.Vector3(-8.5, 7.4, -4), vr: new THREE.Vector3(8.5, 7.4, -4) };
+  const actorPos = new THREE.Vector3();
+  let travel = 0; // smoothed scroll progress (rig.scrollProgress, 0–1)
   const flipOffset = new THREE.Vector3();
   const flipEuler = new THREE.Euler();
   const glazeColors = GLAZES.map((c) => new THREE.Color(c));
 
   /* Camera ------------------------------------------------------------ */
   const camera = new THREE.PerspectiveCamera(30, 1, 0.3, 400);
+  const post = createPost(renderer, scene, camera, { lowPower });
   const pointer = { x: 0, y: 0, sx: 0, sy: 0 };
   const heroPos = new THREE.Vector3();
   const heroTarget = new THREE.Vector3();
@@ -207,8 +263,10 @@ export async function createHeroScene(container, { onReady } = {}) {
     const w = container.clientWidth || window.innerWidth;
     const h = container.clientHeight || window.innerHeight;
     renderer.setSize(w, h, false);
+    post.setSize(w, h);
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
+    bgU.uAspect.value = w / h;
   }
 
   function computeHeroCamera() {
@@ -222,6 +280,11 @@ export async function createHeroScene(container, { onReady } = {}) {
     const tz = target.z + params.focusZ;
     heroTarget.set(tx + px * 0.3, 0, tz + pz * 0.3);
     heroPos.set(tx + px, Math.cos(tilt) * dist, tz + Math.sin(tilt) * dist + pz);
+  }
+
+  /** 1 on landscape → ~0.55 on narrow phones: shrinks wide set pieces to fit. */
+  function narrowFit() {
+    return clamp(camera.aspect / 0.85, 0.55, 1);
   }
 
   function computeStoryCamera() {
@@ -266,7 +329,7 @@ export async function createHeroScene(container, { onReady } = {}) {
     // Ease rendered values toward the scroll targets (cinematic lag, and
     // fast scrolls never jump). rig.smoothing = 0 → exact (reduced motion).
     const k = (rig?.smoothing ?? 1) && !reducedMotion ? 1 - Math.exp(-dt * 6) : 1;
-    for (const key of stateKeys) view[key] += (state[key] - view[key]) * k;
+    for (const key of stateKeys) view[key] += (state[key] - view[key]) * (userKey[key] ? 1 : k);
     pointer.sx += (pointer.x - pointer.sx) * 0.05;
     pointer.sy += (pointer.y - pointer.sy) * 0.05;
 
@@ -307,17 +370,24 @@ export async function createHeroScene(container, { onReady } = {}) {
       mug.position.add(flipOffset.applyEuler(flipEuler));
     }
 
+    // Coffee: slosh, drain, pour and splash, all driven by the flip angle.
+    coffee.update(dt, t, flipAngle);
+
     // Gamepad / headset: scale in, gentle float + idle turn.
     const bob = Math.sin(t * 0.9) * 0.18 * idle;
+    const form = ease(clamp(view.formation, 0, 1));
     [
-      [pad, view.padS, 0.95],
-      [vr, view.vrS, 0.92],
-    ].forEach(([a, sRaw, size]) => {
+      [pad, view.padS, 0.95, FORMATION.pad],
+      [vr, view.vrS, 0.92, FORMATION.vr],
+    ].forEach(([a, sRaw, size, flank]) => {
       const s = ease(clamp(sRaw, 0, 1));
       a.visible = s > 0.01;
       if (!a.visible) return;
-      a.scale.setScalar(size * Math.max(s, 0.001));
-      a.position.set(STAGE.x, STAGE.y + bob, STAGE.z);
+      a.scale.setScalar(size * Math.max(s, 0.001) * (1 - form * 0.35));
+      actorPos.lerpVectors(STAGE, flank, form);
+      // Portrait: pull the flanking actors in so they stay on screen.
+      actorPos.x = STAGE.x + (actorPos.x - STAGE.x) * Math.max(narrowFit(), 0.78);
+      a.position.set(actorPos.x, actorPos.y + bob, actorPos.z);
       a.rotation.set(
         view.arx - pointer.sy * 0.08 * params.parallax,
         view.ary + Math.sin(t * 0.4) * 0.12 * idle + pointer.sx * 0.2 * params.parallax + (1 - s) * 1.2,
@@ -338,18 +408,88 @@ export async function createHeroScene(container, { onReady } = {}) {
     const gi = Math.min(Math.floor(g), glazeColors.length - 2);
     glazeMat.color.lerpColors(glazeColors[gi], glazeColors[gi + 1], g - gi);
 
-    renderer.render(scene, camera);
+    // Backdrop + atmosphere (frozen in time for reduced motion).
+    const ft = reducedMotion ? 0 : t;
+    bgU.uTime.value = ft;
+    bgU.uGlow.value = view.glow;
+    bgU.uGlowPos.value.set(view.gx, 1 - view.gy);
+    bgU.uTint.value = view.tint;
+    embers.update(ft, clamp(view.embers, 0, 1.5));
+    smoke.update(ft, clamp(view.smoke, 0, 1.5));
+    trails.update(ft, clamp(view.trails, 0, 1.5));
+    voxels.update(ft, clamp(view.voxels, 0, 1.2));
+
+    // World travel + presence (fades in as the desk fades out).
+    const tTarget = clamp(rig?.scrollProgress ?? 0, 0, 1);
+    travel += (tTarget - travel) * (reducedMotion ? 1 : 1 - Math.exp(-dt * 4));
+    const presence = (1 - h) * clamp(view.world, 0, 1);
+    world.update(ft, { travel, presence, glow: clamp(view.glow * 1.6 + 0.25, 0, 1.2) });
+    scene.fog.density = 0.0075 * presence;
+
+    // Steam from the opening while the mug is upright, full and on stage.
+    const upright = 1 - clamp(view.userFlip * 4, 0, 1);
+    steamOrigin.set(0, 5.35, 0);
+    mug.localToWorld(steamOrigin);
+    steam.setOrigin(steamOrigin);
+    steam.update(ft, view.steam * (1 - h) * upright * coffee.level * ms);
+
+    // Capability orbit (toolkit).
+    orbit.update(ft, clamp(view.orbit, 0, 1) * (1 - h), narrowFit());
+
+    post.render(dt);
 
     if (first) {
       first = false;
+      warmUp(); // before the loader lifts, so any compile stall is hidden
       onReady?.();
     }
     raf = requestAnimationFrame(tick);
   }
+  /**
+   * Compile every material once, including effects that are still hidden
+   * (world, steam, orbit, actors). Without this their shaders compile the
+   * first time they become visible, which froze scrolling for ~250 ms on
+   * entering the statement section.
+   */
+  function warmUp() {
+    const hidden = [];
+    scene.traverse((o) => {
+      if (!o.visible) {
+        hidden.push(o);
+        o.visible = true;
+      }
+    });
+    // Compile against the composer's input buffer so the program keys
+    // (linear output, no tone mapping) match the real render pass.
+    const prevTarget = renderer.getRenderTarget();
+    try {
+      renderer.setRenderTarget(post.composer.inputBuffer ?? null);
+      renderer.compile(scene, camera);
+      // The desk fade switches its materials to transparent, which is a
+      // different program — compile that variant too, then restore.
+      for (const m of deskMaterials) {
+        m.transparent = true;
+        m.needsUpdate = true;
+      }
+      renderer.compile(deskGroup, camera, scene);
+      for (const m of deskMaterials) {
+        m.transparent = false;
+        m.needsUpdate = true;
+      }
+    } finally {
+      renderer.setRenderTarget(prevTarget);
+      // visibility is re-derived from the view state every frame anyway
+      hidden.forEach((o) => (o.visible = false));
+    }
+  }
+
   tick();
 
   rig = {
     smoothing: 1,
+    coffee, // { burst(strength), refill(), level } — for flip timelines
+    orbit, // { anchors: Vector3[4] } — toolkit labels pin to these
+    scrollProgress: 0, // written by useScrollStory; drives world travel
     scene,
     camera,
     renderer,
@@ -364,8 +504,9 @@ export async function createHeroScene(container, { onReady } = {}) {
     timer.dispose();
     ro.disconnect();
     window.removeEventListener('pointermove', onPointerMove);
+    post.dispose();
     scene.traverse((o) => {
-      if (!o.isMesh) return;
+      if (!o.isMesh && !o.isPoints) return;
       o.geometry.dispose();
       const mats = Array.isArray(o.material) ? o.material : [o.material];
       for (const m of mats) {

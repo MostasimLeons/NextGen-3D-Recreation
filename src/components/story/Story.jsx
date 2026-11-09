@@ -21,7 +21,7 @@ export default function Story({ rig }) {
       <FeaturesSection />
       <InteractiveSection rig={rig} />
       <MaterialSection />
-      <ToolkitSection />
+      <ToolkitSection rig={rig} />
       <ProcessSection />
       <ProjectsSection />
       <OutroSection />
