@@ -15,6 +15,9 @@ dist-ssr/
 *.p12
 *.pfx
 
+# Vercel CLI link folder (project / team IDs) — local only
+.vercel/
+
 # Logs
 *.log
 npm-debug.log*
