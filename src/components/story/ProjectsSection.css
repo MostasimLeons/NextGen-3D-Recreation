@@ -73,11 +73,104 @@
   border-radius: 16px;
   overflow: hidden;
   min-height: 0;
+  /* Theme colours are GSAP-tweened CSS variables (set on .explore) */
   background:
-    radial-gradient(70% 60% at 50% 70%, rgba(220, 80, 0, 0.22), transparent 70%),
-    rgba(var(--c-shade), 0.35);
-  border: 1px solid var(--c-glass-border);
+    radial-gradient(70% 60% at 50% 72%, var(--panel-a, rgba(220, 80, 0, 0.22)), transparent 72%),
+    linear-gradient(180deg, transparent 40%, rgba(var(--c-shade), 0.5)),
+    var(--panel-b, rgba(var(--c-shade), 0.35));
+  border: 1px solid color-mix(in srgb, var(--accent, #ff7a2a) 30%, transparent);
+  box-shadow: 0 30px 80px -40px color-mix(in srgb, var(--accent, #ff7a2a) 55%, transparent);
   cursor: grab;
+}
+
+/* Cinematic overlay typography ------------------------------------------ */
+.explore__overlay {
+  position: absolute;
+  left: clamp(16px, 1.8vw, 28px);
+  top: clamp(14px, 1.8vw, 26px);
+  right: 30%;
+  pointer-events: none;
+}
+.explore__meta {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  font-family: var(--f-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.explore__index {
+  font-size: clamp(22px, 2.2vw, 36px);
+  color: var(--accent, #ff7a2a);
+  letter-spacing: 0;
+}
+.explore__theme {
+  color: var(--c-cream-dim);
+}
+.explore__title {
+  margin: 6px 0 10px;
+  font-family: var(--f-display);
+  font-weight: 600;
+  font-size: clamp(30px, 3.6vw, 64px);
+  line-height: 0.92;
+  letter-spacing: -0.04em;
+  color: var(--c-cream);
+  text-shadow: 0 6px 30px rgba(var(--c-shade), 0.6);
+}
+.split-word {
+  display: inline-flex;
+  overflow: hidden; /* letters rise from behind a mask */
+  padding-bottom: 0.08em;
+  margin-right: 0.24em;
+}
+.split-char {
+  display: inline-block;
+  will-change: transform, opacity;
+}
+.explore__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.explore__tags li {
+  padding: 5px 10px;
+  border: 1px dashed color-mix(in srgb, var(--accent, #ff7a2a) 60%, transparent);
+  border-radius: 999px;
+  font-family: var(--f-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--c-cream);
+  background: rgba(var(--c-shade), 0.35);
+}
+
+/* Orange wipe that crosses the stage on every category switch */
+.explore__wipe {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--accent, #ff7a2a) 55%, transparent) 46%,
+    rgba(255, 176, 102, 0.6) 54%,
+    transparent
+  );
+  mix-blend-mode: screen;
+  opacity: 0;
+  transform: scaleX(0);
+  pointer-events: none;
+}
+
+/* Accent follows the theme: active tab index, preview frames */
+.explore__tab.is-active .explore__tab-index {
+  color: var(--accent, #ff7a2a);
+}
+.explore .preview-tile {
+  border-color: color-mix(in srgb, var(--accent, #ff7a2a) 55%, transparent);
 }
 .explore__stage:active {
   cursor: grabbing;
@@ -130,6 +223,15 @@
 }
 
 @media (max-width: 640px) {
+  .explore__overlay {
+    right: 12px;
+  }
+  .explore__title {
+    font-size: 26px;
+  }
+  .explore__tags li:nth-child(n + 3) {
+    display: none; /* keep the stage readable on phones */
+  }
   .explore {
     padding-top: 64px;
     gap: 10px;

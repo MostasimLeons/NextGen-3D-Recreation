@@ -114,6 +114,7 @@ export const content = {
           short: 'Games',
           body: 'Playable worlds and interactive prototypes built in Unity and Unreal Engine — level, loop and feel first.',
           stage: 'Level prototype',
+          tags: ['Unity', 'Unreal Engine', 'Interactive games'],
           previews: [
             { id: 'coins', label: 'Coin run', meta: 'Gameplay loop' },
             { id: 'sparks', label: 'Hit sparks', meta: 'VFX pass' },
@@ -126,6 +127,7 @@ export const content = {
           short: '3D & VR',
           body: 'Modeled, sculpted and animated assets, and VR spaces made to be stepped into — not just looked at.',
           stage: 'Sculpt & headset',
+          tags: ['3D modeling', '3D animation', 'Virtual reality', 'Immersive'],
           previews: [
             { id: 'wire', label: 'Wireframe', meta: 'Topology pass' },
             { id: 'rig', label: 'Rig test', meta: 'Animation' },
@@ -138,6 +140,7 @@ export const content = {
           short: 'Design',
           body: 'Interfaces, visual systems and motion graphics with the same precision as a hand-pulled handle.',
           stage: 'Interface & motion',
+          tags: ['UI/UX design', 'Visual design', 'Motion graphics'],
           previews: [
             { id: 'morph', label: 'Shape morph', meta: 'Motion graphics' },
             { id: 'ui', label: 'Interface', meta: 'UI/UX' },
