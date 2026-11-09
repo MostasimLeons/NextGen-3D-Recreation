@@ -2,6 +2,7 @@ import { lazy, Suspense, useCallback, useEffect, useState } from 'react';
 import SceneLayer from './components/SceneLayer.jsx';
 import Header from './components/Header.jsx';
 import PortalOverlay from './components/PortalOverlay.jsx';
+import PresentationHost from './presentation/PresentationHost.jsx';
 import ShowcaseLayer from './showcase/ShowcaseLayer.jsx';
 import HomePage from './pages/HomePage.jsx';
 import { installLinkInterception, useRoute } from './router/navigation.js';
@@ -70,6 +71,7 @@ export default function App() {
         </span>
       </div>
       <PortalOverlay rig={rig} />
+      <PresentationHost rig={rig} />
     </>
   );
 }

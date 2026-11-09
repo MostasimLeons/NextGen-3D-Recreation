@@ -91,3 +91,27 @@ Safety rules built into the script:
 - Never force-pushes. If a push is rejected, pull first.
 - Refuses to commit `.env`, `*.key`, `*.pem` and similar secret files.
 - No credentials are stored in the repo. Sign-in is handled by Git Credential Manager / `gh auth login`.
+
+## Cinematic presentation
+
+Clicking the **NEXT GEN** card in the hero opens a full-screen, auto-playing
+presentation (`src/presentation/`): six scenes on one GSAP timeline, rendered
+by its own React Three Fiber canvas with custom GLSL (particle wordmark,
+smoke/light-trail backdrop, cut transition) and pmndrs postprocessing.
+Controls: pause/resume (Space), replay (R), sound (M — starts muted), scene
+jumps (← →, or the progress bar) and close (Esc). The page behind is
+scroll-locked and its own 3D scene paused while it plays.
+
+## Deploying to Vercel
+
+The repo is ready for Vercel (`vercel.json`): Vite preset, `npm ci`,
+`npm run build`, output `dist/`. The build writes one HTML file per route
+(`/game-development`, `/3d-art-vr`, `/creative-design`, `/technology`) plus
+`404.html`, so deep links work without rewrites; hashed assets are cached
+for a year.
+
+1. In Vercel, **Add New → Project** and import this GitHub repository.
+2. Keep the detected settings (they come from `vercel.json`) and deploy.
+3. Every pushed branch gets a preview URL; `main` deploys to production.
+
+Or with the CLI: `npx vercel` (preview) and `npx vercel --prod`.

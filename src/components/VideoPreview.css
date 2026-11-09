@@ -7,9 +7,6 @@
   border-radius: 12px;
   transition: transform 0.5s var(--ease-out);
 }
-.video-preview[aria-disabled="true"] {
-  cursor: default;
-}
 .video-preview:hover {
   transform: scale(1.04);
 }
